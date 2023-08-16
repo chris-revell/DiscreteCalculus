@@ -30,7 +30,7 @@ using FromFile
 function makeCellPolygons(R, A, B)
     nCells = size(B,1)
     cellPolygons = Vector{Point2f}[]
-    for i = 1:nCells
+    for indexCell = 1:nCells
         orderedVertices, orderedEdges = orderAroundCell(A, B, indexCell)
         push!(cellPolygons, Point2f.(R[orderedVertices]))
     end

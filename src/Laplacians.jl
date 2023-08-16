@@ -85,6 +85,9 @@ function makeLt(R, A, B)
     return Lₜ
 end
 
-export makeLf, makeLc, makeLv, makeLt
+export makeLf
+export makeLc
+export makeLv
+export makeLt
 
 end #end module 

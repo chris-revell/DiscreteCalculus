@@ -42,10 +42,18 @@ export calculateVertexMidpointCurls
 export calculateVertexMidpointDivs
 export calculateCellMidpointDivs
 export calculateCellMidpointCurls
-export eigenmodesLt, eigenmodesLf, eigenmodesLv
-export makeLf, makeLc, makeLv, makeLt
+export eigenmodesLf
+export eigenmodesLc
+export eigenmodesLt
+export eigenmodesLv
+export makeLf
+export makeLc
+export makeLv
+export makeLt
 export orderAroundCell
-export psicPotential, psivPotential, capitalPsivPotential
+export psicPotential
+export psivPotential
+export capitalPsivPotential
 export senseCheck
 export findCellCentresOfMass
 export findEdgeTangents
