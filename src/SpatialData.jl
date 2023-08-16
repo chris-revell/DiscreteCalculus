@@ -22,7 +22,7 @@ end
 
 findEdgeTangents(R, A) = A*R
 
-findEdgeLengths(edgeTangents) = norm.(edgeTangents)
+# findEdgeLengths(edgeTangents) = norm.(edgeTangents)
 findEdgeLengths(R, A) = norm.(A*R)
 
 findEdgeMidpoints(R, A) = 0.5.*abs.(A)*R # 0.5.*Ā*R

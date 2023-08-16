@@ -109,7 +109,9 @@ function makeEdgeTrapezia(R, A, B)
     return edgeTrapezia
 end
 
-function makeEdgeMidpointPolygons(nCells, A, B, edgeMidpoints)
+function makeEdgeMidpointPolygons(R, A, B)
+    nCells = size(B,1)
+    edgeMidpoints = findEdgeMidpoints(R, A)
     edgeMidpointPolygons = Vector{Point2f}[]
     for i = 1:nCells
         orderedVertices, orderedEdges = orderAroundCell(A, B, indexCell)
@@ -118,7 +120,8 @@ function makeEdgeMidpointPolygons(nCells, A, B, edgeMidpoints)
     return edgeMidpointPolygons
 end
 
-function makeCellVerticesDict(nCells, A, B)
+function makeCellVerticesDict(A, B)
+    nCells = size(B,1)
     cellVerticesDict = Dict()
     for i = 1:nCells
         cellVertices, cellEdges = orderAroundCell(A, B, indexCell)
@@ -128,7 +131,14 @@ function makeCellVerticesDict(nCells, A, B)
     return cellVerticesDict
 end
 
-function findEdgeLinkMidpoints(nEdges, R, A, B, cellCentresOfMass, edgeTangents, edgeMidpoints, ϵᵢ, trapeziumAreas, T)
+function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
+    nEdges = size(B,2)
+    cellCentresOfMass = findCellCentresOfMass(R, A, B) 
+    edgeTangents = findEdgeTangents(R, A)
+    edgeMidpoints = findEdgeMidpoints(R, A)
+    edgeTrapezia = makeEdgeTrapezia(R, A, B)
+    trapeziumAreas = abs.(area.(edgeTrapezia))
+    T = makeCellLinks(R,A,B)
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1 * ϵᵢ
     onesVec = ones(1, nCells)
@@ -148,7 +158,11 @@ function findEdgeLinkMidpoints(nEdges, R, A, B, cellCentresOfMass, edgeTangents,
     return intersections
 end
 
-function makeSpokes(nVerts, nCells, R, C, cellCentresOfMass)
+function makeSpokes(R, A, B)
+    nVerts = size(A,2)
+    nCells = size(B,1)
+    C = abs.(B) * abs.(A) .÷ 2
+    cellCentresOfMass = findCellCentresOfMass(R, A, B) 
     q = Matrix{SVector{2,Float64}}(undef, nCells, nVerts)
     for i = 1:nCells
         for k = 1:nVerts
