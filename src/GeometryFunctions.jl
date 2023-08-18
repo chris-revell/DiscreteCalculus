@@ -28,7 +28,7 @@ using FromFile
 # end
 
 function makeCellPolygons(R, A, B)
-    nCells = size(B,1)
+    nCells = size(B, 1)
     cellPolygons = Vector{Point2f}[]
     for indexCell = 1:nCells
         orderedVertices, orderedEdges = orderAroundCell(A, B, indexCell)
@@ -37,10 +37,10 @@ function makeCellPolygons(R, A, B)
     return cellPolygons
 end
 
-function makeCellLinks(R,A,B)
-    nCells = size(B,1)
-    nEdges = size(B,2)
-    cellCentresOfMass = findCellCentresOfMass(R, A, B) 
+function makeCellLinks(R, A, B)
+    nCells = size(B, 1)
+    nEdges = size(B, 2)
+    cellCentresOfMass = findCellCentresOfMass(R, A, B)
     edgeMidpoints = findEdgeMidpoints(R, A)
     onesVec = ones(1, nCells)
     boundaryEdges = abs.(onesVec * B)
@@ -57,15 +57,15 @@ function makeCellLinks(R,A,B)
 end
 
 function makeLinkTriangles(R, A, B)
-    nCells = size(B,1)
-    nVerts = size(A,2)
+    nCells = size(B, 1)
+    nVerts = size(A, 2)
     Aᵀ = Transpose(A)
     Āᵀ = Transpose(abs.(A))
     C = abs.(B) * abs.(A) .÷ 2
     boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
-    cellCentresOfMass = findCellCentresOfMass(R, A, B) 
+    cellCentresOfMass = findCellCentresOfMass(R, A, B)
     edgeMidpoints = findEdgeMidpoints(R, A)
-    onesVec = ones(Int64,1, nCells)
+    onesVec = ones(Int64, 1, nCells)
     linkTriangles = Vector{Point2f}[]
     boundaryEdges = abs.(onesVec * B)
     for k = 1:nVerts
@@ -94,8 +94,8 @@ function makeLinkTriangles(R, A, B)
 end
 
 function makeEdgeTrapezia(R, A, B)
-    nEdges = size(B,2)
-    cellCentresOfMass = findCellCentresOfMass(R, A, B) 
+    nEdges = size(B, 2)
+    cellCentresOfMass = findCellCentresOfMass(R, A, B)
     edgeTrapezia = Vector{Point2f}[]
     for j = 1:nEdges
         edgeCells = findall(x -> x != 0, B[:, j])
@@ -110,7 +110,7 @@ function makeEdgeTrapezia(R, A, B)
 end
 
 function makeEdgeMidpointPolygons(R, A, B)
-    nCells = size(B,1)
+    nCells = size(B, 1)
     edgeMidpoints = findEdgeMidpoints(R, A)
     edgeMidpointPolygons = Vector{Point2f}[]
     for i = 1:nCells
@@ -121,7 +121,7 @@ function makeEdgeMidpointPolygons(R, A, B)
 end
 
 function makeCellVerticesDict(A, B)
-    nCells = size(B,1)
+    nCells = size(B, 1)
     cellVerticesDict = Dict()
     for i = 1:nCells
         cellVertices, cellEdges = orderAroundCell(A, B, indexCell)
@@ -132,13 +132,13 @@ function makeCellVerticesDict(A, B)
 end
 
 function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
-    nEdges = size(B,2)
-    cellCentresOfMass = findCellCentresOfMass(R, A, B) 
+    nEdges = size(B, 2)
+    cellCentresOfMass = findCellCentresOfMass(R, A, B)
     edgeTangents = findEdgeTangents(R, A)
     edgeMidpoints = findEdgeMidpoints(R, A)
     edgeTrapezia = makeEdgeTrapezia(R, A, B)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    T = makeCellLinks(R,A,B)
+    T = makeCellLinks(R, A, B)
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1 * ϵᵢ
     onesVec = ones(1, nCells)
@@ -159,10 +159,10 @@ function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
 end
 
 function makeSpokes(R, A, B)
-    nVerts = size(A,2)
-    nCells = size(B,1)
+    nVerts = size(A, 2)
+    nCells = size(B, 1)
     C = abs.(B) * abs.(A) .÷ 2
-    cellCentresOfMass = findCellCentresOfMass(R, A, B) 
+    cellCentresOfMass = findCellCentresOfMass(R, A, B)
     q = Matrix{SVector{2,Float64}}(undef, nCells, nVerts)
     for i = 1:nCells
         for k = 1:nVerts

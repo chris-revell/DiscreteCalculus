@@ -37,7 +37,7 @@ end
 function eigenmodesLv(R, A, B)
     Lᵥ = makeLv(R, A, B)
     decomposition = (eigen(Matrix(Lᵥ))).vectors
-end 
+end
 
 export eigenmodesLf
 export eigenmodesLc
