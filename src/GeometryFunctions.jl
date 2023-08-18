@@ -59,13 +59,13 @@ end
 function makeLinkTriangles(R, A, B)
     nCells = size(B,1)
     nVerts = size(A,2)
-    Aᵀ = sparse(transpose(A))
-    Āᵀ = abs.(Aᵀ)
+    Aᵀ = Transpose(A)
+    Āᵀ = Transpose(abs.(A))
     C = abs.(B) * abs.(A) .÷ 2
     boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
     cellCentresOfMass = findCellCentresOfMass(R, A, B) 
     edgeMidpoints = findEdgeMidpoints(R, A)
-    onesVec = ones(1, nCells)
+    onesVec = ones(Int64,1, nCells)
     linkTriangles = Vector{Point2f}[]
     boundaryEdges = abs.(onesVec * B)
     for k = 1:nVerts

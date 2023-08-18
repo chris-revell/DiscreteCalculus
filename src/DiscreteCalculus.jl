@@ -19,7 +19,7 @@ using FromFile
 @from "Eigenmodes.jl" using Eigenmodes
 @from "Laplacians.jl" using Laplacians
 @from "OrderAroundCell.jl" using OrderAroundCell
-@from "Potentials.jl" using Potentials
+# @from "Potentials.jl" using Potentials
 @from "SenseCheck.jl" using SenseCheck
 @from "SpatialData.jl" using SpatialData
 @from "TopologyMatrices.jl" using TopologyMatrices

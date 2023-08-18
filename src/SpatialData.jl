@@ -34,7 +34,7 @@ end
 
 function findCellAreas(R, A, B)
     nCells = size(B,1)
-    Bᵀ = sparse(transpose(B))
+    Bᵀ = sparse(Transpose(B)) # Have to convert transpose type to sparse type here because nzrange won't operate on a transpose type object
     edgeTangents = A*R
     edgeMidpoints = 0.5.*abs.(A)*R
     # Calculate oriented cell areas    

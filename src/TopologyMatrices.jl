@@ -27,9 +27,9 @@ function topologyMatrices(A, B)
     C = B̄ * Ā .÷ 2 # (NB Integer division)
 
     # Update transpose matrices
-    Aᵀ = sparse(transpose(A))
+    Aᵀ = Transpose(A)
     Āᵀ = abs.(Aᵀ)
-    Bᵀ = sparse(transpose(B))
+    Bᵀ = Transpose(B)
     B̄ᵀ = abs.(Bᵀ)
 
     dropzeros!(A)

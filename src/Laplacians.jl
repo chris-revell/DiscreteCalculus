@@ -21,7 +21,7 @@ using GeometryBasics
 
 function makeLf(R, A, B)
     nCells = size(B,1)
-    Bᵀ = sparse(transpose(B))
+    Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
     edgeLengths = findEdgeLengths(R, A) 
     edgeTrapezia = makeEdgeTrapezia(R, A, B)
@@ -40,7 +40,7 @@ end
 
 function makeLc(R, A, B)
     nCells = size(B,1)
-    Bᵀ = sparse(transpose(B))
+    Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
     T = makeCellLinks(R,A,B)
     edgeTrapezia = makeEdgeTrapezia(R, A, B)
@@ -58,7 +58,7 @@ function makeLc(R, A, B)
 end
 
 function makeLv(R, A, B)
-    Aᵀ = sparse(transpose(A))
+    Aᵀ = Transpose(A)
     edgeLengths = findEdgeLengths(R, A)
     linkTriangles = makeLinkTriangles(R, A, B)
     linkTriangleAreas = abs.(area.(linkTriangles))
@@ -72,7 +72,7 @@ function makeLv(R, A, B)
 end
 
 function makeLt(R, A, B)
-    Aᵀ = sparse(transpose(A))
+    Aᵀ = Transpose(A)
     T = makeCellLinks(R,A,B)
     linkTriangles = makeLinkTriangles(R, A, B)
     linkTriangleAreas = abs.(area.(linkTriangles))
