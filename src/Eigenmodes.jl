@@ -17,25 +17,25 @@ using FromFile
 @from "Laplacians.jl" using Laplacians
 
 function eigenmodesLf(R, A, B)
-    Lf = makeLf(R, A, B)
+    Lf = geometricLf(R, A, B)
     decomposition = (eigen(Matrix(Lf))).vectors
     return decomposition
 end
 
 function eigenmodesLc(R, A, B)
-    Lc = makeLc(R, A, B)
+    Lc = geometricLc(R, A, B)
     decomposition = (eigen(Matrix(Lc))).vectors
     return decomposition
 end
 
 function eigenmodesLt(R, A, B)
-    Lₜ = makeLt(R, A, B)
+    Lₜ = geometricLt(R, A, B)
     decomposition = (eigen(Matrix(Lₜ))).vectors
     return decomposition
 end
 
 function eigenmodesLv(R, A, B)
-    Lᵥ = makeLv(R, A, B)
+    Lᵥ = geometricLv(R, A, B)
     decomposition = (eigen(Matrix(Lᵥ))).vectors
 end
 

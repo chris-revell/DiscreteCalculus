@@ -20,11 +20,12 @@ using DrWatson
 function topologyMatrices(A, B)
 
     # Find adjacency matrices from incidence matrices
-    Ā = abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)
+    Ā = abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)Ā :==>= a:C=>bs.:(A=>(A) :  =>   #: A=> All: =>: 1 :components co=>components conv:erted to +1 (In =>erted to +1 (In ot:her words, create adjacency matrix Ā from incidence matrix A=>her words, create adjacency matrix Ā from incidence matrix A)
     B̄ = abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
 
     # C adjacency matrix. Rows => cells; Columns => vertices.
     C = B̄ * Ā .÷ 2 # (NB Integer division)
+    dropzeros!(C)
 
     # Update transpose matrices
     Aᵀ = Transpose(A)
@@ -32,16 +33,16 @@ function topologyMatrices(A, B)
     Bᵀ = Transpose(B)
     B̄ᵀ = abs.(Bᵀ)
 
-    dropzeros!(A)
-    dropzeros!(B)
-    dropzeros!(C)
-    dropzeros!(Ā)
-    dropzeros!(B̄)
-    dropzeros!(C)
-    dropzeros!(Aᵀ)
-    dropzeros!(Āᵀ)
-    dropzeros!(Bᵀ)
-    dropzeros!(B̄ᵀ)
+    # dropzeros!(A)
+    # dropzeros!(B)
+    # dropzeros!(C)
+    # dropzeros!(Ā)
+    # dropzeros!(B̄)
+    # dropzeros!(C)
+    # dropzeros!(Aᵀ)
+    # dropzeros!(Āᵀ)
+    # dropzeros!(Bᵀ)
+    # dropzeros!(B̄ᵀ)
 
     # Calculate additional topology data
     # Number of edges around each cell found by summing columns of B̄
@@ -56,7 +57,7 @@ function topologyMatrices(A, B)
     # Find list of edges at system periphery
     boundaryEdges = abs.([sum(x) for x in eachcol(B)])
 
-    return Ā, B̄, C, Aᵀ, Āᵀ, Bᵀ, B̄ᵀ, cellEdgeCount, boundaryVertices, boundaryEdges
+    return Dict(:Ā=>Ā, :B̄=>B̄, :C=>C, :Aᵀ=>Aᵀ, :Āᵀ=>Āᵀ, :Bᵀ=>Bᵀ, :B̄ᵀ=>B̄ᵀ, :cellEdgeCount=>cellEdgeCount, :boundaryVertices=>boundaryVertices, :boundaryEdges=>boundaryEdges)
 
 end
 

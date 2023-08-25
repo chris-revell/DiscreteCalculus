@@ -4,13 +4,18 @@ authors = ["chris-revell <christopher.revell@manchester.ac.uk>"]
 version = "0.1.0"
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 CircularArrays = "7a955b69-7140-5f4e-a0ed-f168c5e2e749"
+DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
 FromFile = "ff7dd447-1dcb-4ce3-b8ac-22a812192de7"
+GR = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
 GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 DrWatson = "2.12.7"

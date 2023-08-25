@@ -46,10 +46,10 @@ export eigenmodesLf
 export eigenmodesLc
 export eigenmodesLt
 export eigenmodesLv
-export makeLf
-export makeLc
-export makeLv
-export makeLt
+export geometricLf
+export geometricLc
+export geometricLv
+export geometricLt
 export orderAroundCell
 export psicPotential
 export psivPotential
@@ -63,5 +63,9 @@ export findEdgeMidpoints
 export findCellPerimeterLengths
 export findCellAreas
 export topologyMatrices
+export topologicalLf
+export topologicalLc
+export topologicalLv
+export topologicalLt
 
 end #end module 

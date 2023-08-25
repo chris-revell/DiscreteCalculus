@@ -19,7 +19,7 @@ using GeometryBasics
 @from "SpatialData.jl" using SpatialData
 @from "GeometryFunctions.jl" using GeometryFunctions
 
-function makeLf(R, A, B)
+function geometricLf(R, A, B)
     nCells = size(B, 1)
     Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
@@ -38,7 +38,7 @@ function makeLf(R, A, B)
     return Lf
 end
 
-function makeLc(R, A, B)
+function geometricLc(R, A, B)
     nCells = size(B, 1)
     Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
@@ -57,7 +57,7 @@ function makeLc(R, A, B)
     return Lc
 end
 
-function makeLv(R, A, B)
+function geometricLv(R, A, B)
     Aᵀ = Transpose(A)
     edgeLengths = findEdgeLengths(R, A)
     linkTriangles = makeLinkTriangles(R, A, B)
@@ -71,7 +71,7 @@ function makeLv(R, A, B)
     return Lᵥ
 end
 
-function makeLt(R, A, B)
+function geometricLt(R, A, B)
     Aᵀ = Transpose(A)
     T = makeCellLinks(R, A, B)
     linkTriangles = makeLinkTriangles(R, A, B)
@@ -85,9 +85,55 @@ function makeLt(R, A, B)
     return Lₜ
 end
 
-export makeLf
-export makeLc
-export makeLv
-export makeLt
+function topologicalLf(R, A, B)
+    nCells = size(B, 1)
+    Bᵀ = Transpose(B)
+    onesVec = ones(1, nCells)
+    boundaryEdges = abs.(onesVec * B)
+    H = Diagonal(cellAreas)
+    boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
+    diagonalComponent = boundaryEdgesFactor'
+    Tₑ = Diagonal(diagonalComponent)
+    invH = inv(H)
+    Lf = invH * B * Tₑ * Bᵀ
+    dropzeros!(Lf)
+    return Lf
+end
+
+function topologicalLc(R, A, B)
+    nCells = size(B, 1)
+    Bᵀ = Transpose(B)
+    onesVec = ones(1, nCells)
+    boundaryEdges = abs.(onesVec * B)
+    boundaryEdgesFactor = abs.(boundaryEdges .- 1)      # =1 for internal vertices, =0 for boundary vertices
+    boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1, :])
+    Lc = B * boundaryEdgesFactorMat * Bᵀ
+    Lc = B * Bᵀ
+    dropzeros!(Lc)
+    return Lc
+end
+
+function topologicalLv(R, A, B)
+    Aᵀ = Transpose(A)
+    Lᵥ = Aᵀ * A
+    dropzeros!(Lᵥ)
+    return Lᵥ
+end
+
+function topologicalLt(R, A, B)
+    Aᵀ = Transpose(A)
+    Lₜ = Aᵀ * A
+    dropzeros!(Lₜ)
+    return Lₜ
+end
+
+export geometricLf
+export geometricLc
+export geometricLv
+export geometricLt
+export topologicalLf
+export topologicalLc
+export topologicalLv
+export topologicalLt
 
 end #end module 
