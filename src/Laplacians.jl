@@ -127,6 +127,34 @@ function topologicalLt(R, A, B)
     return Lₜ
 end
 
+function edgeMidpointL(R, A, B, ϵᵢ)
+    nCells = size(B,1)
+    nEdges = size(B,2)
+    nVerts = size(A,2)
+    
+    sᵢₖ = findEdgeMidpointLinks(R, A, B, ϵᵢ)
+
+    Ā = abs.(A)
+    B̄ = abs.(B)
+    C = B̄ * Ā .÷ 2
+
+    L = spzeros(Float64,(nCells,nCells))
+    for i=1:nCells
+        nonZero_ks_Around_i = findall(x->x!=0, C[i,:])
+        for k in nonZero_ks_Around_i
+            nonZero_i′s_Around_k = findall(x->x!=0, C[:,k])
+            for i′ in nonZero_i′s_Around_k
+                L[i,i′] += sᵢₖ[(i, k)]⋅sᵢₖ[(i′,k)]
+            end
+        end
+    end
+    dropzeros!(L)
+    
+    return L
+end
+
+
+
 export geometricLf
 export geometricLc
 export geometricLv
@@ -135,5 +163,6 @@ export topologicalLf
 export topologicalLc
 export topologicalLv
 export topologicalLt
+export edgeMidpointL
 
 end #end module 

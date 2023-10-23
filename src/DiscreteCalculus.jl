@@ -60,6 +60,7 @@ export findEdgeTangents
 export findEdgeLengths
 export findEdgeLengths
 export findEdgeMidpoints
+export findEdgeMidpointLinks
 export findCellPerimeterLengths
 export findCellAreas
 export topologyMatrices
@@ -67,5 +68,6 @@ export topologicalLf
 export topologicalLc
 export topologicalLv
 export topologicalLt
+export edgeMidpointL
 
 end #end module 

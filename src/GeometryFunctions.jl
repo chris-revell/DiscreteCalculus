@@ -172,6 +172,29 @@ function makeSpokes(R, A, B)
     return q
 end
 
+# sᵢₖ = ∑ⱼ(1/2)BᵢⱼtⱼĀⱼₖ
+function findEdgeMidpointLinks(R, A, B, ϵᵢ)
+    nCells = size(B,1)
+    nEdges = size(B,2)
+    nVerts = size(A,2)
+    edgeTangents = A*R
+    Ā = abs.(A)
+    B̄ = abs.(B)
+    C = B̄ * Ā .÷ 2
+    nzC = findnz(C)
+    ikPairs = tuple.(nzC[1],nzC[2])
+    
+    s = Dict()
+    for (i,k) in ikPairs
+        sᵢₖ = @SVector zeros(Float64,2)
+        for j=1:nEdges
+            sᵢₖ = sᵢₖ .+ 0.5.*B[i,j]*edgeTangents[j]*Ā[j,k]
+        end
+        s[(i,k)] = sᵢₖ
+    end
+    return s
+end
+
 export makeCellPolygons
 export makeCellLinks
 export makeLinkTriangles
@@ -180,5 +203,6 @@ export makeEdgeMidpointPolygons
 export makeCellVerticesDict
 export findEdgeLinkMidpoints
 export makeSpokes
+export findEdgeMidpointLinks
 
 end #end module 
