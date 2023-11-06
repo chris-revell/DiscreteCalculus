@@ -20,7 +20,6 @@ using FromFile
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
-@from "SpatialData.jl" using SpatialData
 @from "GeometryFunctions.jl" using GeometryFunctions
 
 # {curlᶜb}ᵢ
