@@ -16,7 +16,6 @@ using FromFile
 using GeometryBasics
 
 # Local modules
-@from "SpatialData.jl" using SpatialData
 @from "GeometryFunctions.jl" using GeometryFunctions
 
 function geometricLf(R, A, B)
@@ -127,43 +126,81 @@ function topologicalLt(R, A, B)
     return Lₜ
 end
 
-function edgeMidpointL(R, A, B, ϵᵢ)
-    nCells = size(B,1)
-    nEdges = size(B,2)
-    nVerts = size(A,2)
+function edgeMidpointL(R, A, B)
+    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
 
     cellAreas = findCellAreas(R, A, B)
     
-    sᵢₖ = findEdgeMidpointLinks(R, A, B, ϵᵢ)
+    sᵢₖ = findEdgeMidpointLinks(R, A, B)
+
+    edgeTangents = findEdgeTangents(R, A)
     
     Ā = abs.(A)
     B̄ = abs.(B)
     C = B̄ * Ā .÷ 2
 
-    # No specific handling of edge cases
     αₖ=Float64[]
     for k=1:nVerts
         k_is = findall(x->x!=0, C[:,k])
-        α = 0.5*norm([sᵢₖ[(k_is[1], k)]...,0.0]×[sᵢₖ[(k_is[2],k)]...,0.0])
+        # if length(k_is) == 2
+        #     edgesSharedBy_i1_And_k = findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, A[:,k])
+        #     α = 0.5^3*norm([edgeTangents[edgesSharedBy_i1_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i1_And_k[2]]...,0.0])
+        #     edgesSharedBy_i2_And_k = findall(x->x!=0, B[k_is[2],:])∩findall(x->x!=0, A[:,k])
+        #     α += 0.5^3*norm([edgeTangents[edgesSharedBy_i2_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i2_And_k[2]]...,0.0])
+        # else
+            α = 0.5*norm([sᵢₖ[(k_is[1], k)]...,0.0]×[sᵢₖ[(k_is[2],k)]...,0.0])
+        # end
         push!(αₖ,α)
     end
 
     L = spzeros(Float64,(nCells,nCells))
-    for i=1:nCells
-        nonZero_ks_Around_i = findall(x->x!=0, C[i,:])
-        for k in nonZero_ks_Around_i
-            nonZero_i′s_Around_k = findall(x->x!=0, C[:,k])            
-            for i′ in nonZero_i′s_Around_k
-                L[i,i′] += sᵢₖ[(i, k)]⋅sᵢₖ[(i′,k)]
+    for k=1:nVerts
+        for i in findall(x->x!=0, C[:,k])
+            for i′ in findall(x->x!=0, C[:,k])
+                L[i, i′] += (sᵢₖ[i,k]⋅sᵢₖ[i′,k])/(cellAreas[i]*αₖ[k])
             end
-            L[i,:] = L[i,]/αₖ[k]
         end
-        L[i,:] ./= cellAreas[i]
     end
+    
     dropzeros!(L)
     
     return L
 end
+
+
+# function edgeMidpointLfunction(ϕᵢ, R, A, B)
+    
+#     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
+
+#     cellAreas = findCellAreas(R, A, B)
+    
+#     sᵢₖ = findEdgeMidpointLinks(R, A, B)
+
+#     edgeTangents = findEdgeTangents(R, A)
+    
+#     Ā = abs.(A)
+#     B̄ = abs.(B)
+#     C = B̄ * Ā .÷ 2
+
+#     αₖ=Float64[]
+#     for k=1:nVerts
+#         k_is = findall(x->x!=0, C[:,k])
+#         α = 0.5*norm([sᵢₖ[(k_is[1], k)]...,0.0]×[sᵢₖ[(k_is[2],k)]...,0.0])
+#         push!(αₖ,α)
+#     end
+
+#     Lϕ = zeros(nCells)
+
+#     for k=1:nVerts
+#         for i in findall(x->x!=0, C[:,k])
+#             for i′ in findall(x->x!=0, C[:,k])
+#                 Lϕ[i] += (sᵢₖ[i,k]⋅sᵢₖ[i′,k])*ϕᵢ[i′]/(cellAreas[i]*αₖ[k])
+#             end
+#         end
+#     end
+    
+#     return Lϕ
+# end
 
 
 
@@ -176,5 +213,7 @@ export topologicalLc
 export topologicalLv
 export topologicalLt
 export edgeMidpointL
+
+# export edgeMidpointLfunction
 
 end #end module 
