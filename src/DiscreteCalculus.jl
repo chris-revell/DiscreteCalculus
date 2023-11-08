@@ -61,6 +61,7 @@ export findEdgeMidpoints
 export findEdgeMidpointLinks
 export findCellPerimeterLengths
 export findCellAreas
+export findVertexAreas
 export topologyMatrices
 export topologicalLf
 export topologicalLc

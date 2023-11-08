@@ -131,7 +131,7 @@ function edgeMidpointL(R, A, B)
 
     cellAreas = findCellAreas(R, A, B)
     
-    sᵢₖ = findEdgeMidpointLinks(R, A, B)
+    edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
 
     edgeTangents = findEdgeTangents(R, A)
     
@@ -139,25 +139,13 @@ function edgeMidpointL(R, A, B)
     B̄ = abs.(B)
     C = B̄ * Ā .÷ 2
 
-    αₖ=Float64[]
-    for k=1:nVerts
-        k_is = findall(x->x!=0, C[:,k])
-        # if length(k_is) == 2
-        #     edgesSharedBy_i1_And_k = findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, A[:,k])
-        #     α = 0.5^3*norm([edgeTangents[edgesSharedBy_i1_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i1_And_k[2]]...,0.0])
-        #     edgesSharedBy_i2_And_k = findall(x->x!=0, B[k_is[2],:])∩findall(x->x!=0, A[:,k])
-        #     α += 0.5^3*norm([edgeTangents[edgesSharedBy_i2_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i2_And_k[2]]...,0.0])
-        # else
-            α = 0.5*norm([sᵢₖ[(k_is[1], k)]...,0.0]×[sᵢₖ[(k_is[2],k)]...,0.0])
-        # end
-        push!(αₖ,α)
-    end
+    vertexAreas = findVertexAreas(R, A, B)
 
     L = spzeros(Float64,(nCells,nCells))
     for k=1:nVerts
         for i in findall(x->x!=0, C[:,k])
             for i′ in findall(x->x!=0, C[:,k])
-                L[i, i′] += (sᵢₖ[i,k]⋅sᵢₖ[i′,k])/(cellAreas[i]*αₖ[k])
+                L[i, i′] += (edgeMidpointLinks[i,k]⋅edgeMidpointLinks[i′,k])/(cellAreas[i]*vertexAreas[k])
             end
         end
     end
