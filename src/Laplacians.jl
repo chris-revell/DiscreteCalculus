@@ -14,6 +14,7 @@ using LinearAlgebra
 using SparseArrays
 using FromFile
 using GeometryBasics
+using StaticArrays
 
 # Local modules
 @from "GeometryFunctions.jl" using GeometryFunctions
@@ -126,7 +127,7 @@ function topologicalLt(R, A, B)
     return Lₜ
 end
 
-function edgeMidpointL(R, A, B)
+function edgeMidpointLDirichlet(R, A, B)
     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
 
     cellAreas = findCellAreas(R, A, B)
@@ -139,6 +140,44 @@ function edgeMidpointL(R, A, B)
     B̄ = abs.(B)
     C = B̄ * Ā .÷ 2
 
+    vertexAreas = findVertexAreas(R, A, B)
+
+    L = spzeros(Float64,(nCells,nCells))
+    for k=1:nVerts
+        for i in findall(x->x!=0, C[:,k])
+            for i′ in findall(x->x!=0, C[:,k])
+                L[i, i′] += (edgeMidpointLinks[i,k]⋅edgeMidpointLinks[i′,k])/(cellAreas[i]*vertexAreas[k])
+            end
+        end
+    end
+    
+    dropzeros!(L)
+    
+    return L
+end
+
+
+function edgeMidpointLNeumann(R, A, B)
+    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
+
+    Aᵀ = Transpose(A)
+    Āᵀ = abs.(Aᵀ)
+    Ā = abs.(A)
+    B̄ = abs.(B)
+    C = B̄ * Ā .÷ 2
+
+    cellAreas = findCellAreas(R, A, B)
+    
+    edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
+
+    boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
+
+    for k in findall(x->x!=0, boundaryVertices)
+        edgeMidpointLinks[:,k] .= fill(SVector{2,Float64}(zeros(2)),nCells)
+    end
+
+    edgeTangents = findEdgeTangents(R, A)
+    
     vertexAreas = findVertexAreas(R, A, B)
 
     L = spzeros(Float64,(nCells,nCells))
@@ -200,7 +239,8 @@ export topologicalLf
 export topologicalLc
 export topologicalLv
 export topologicalLt
-export edgeMidpointL
+export edgeMidpointLDirichlet
+export edgeMidpointLNeumann
 
 # export edgeMidpointLfunction
 

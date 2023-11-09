@@ -67,7 +67,8 @@ export topologicalLf
 export topologicalLc
 export topologicalLv
 export topologicalLt
-export edgeMidpointL
+export edgeMidpointLDirichlet
+export edgeMidpointLNeumann
 
 # export edgeMidpointLfunction
 

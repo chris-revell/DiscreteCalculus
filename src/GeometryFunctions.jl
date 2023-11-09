@@ -233,16 +233,15 @@ function findEdgeMidpointLinks(R, A, B)
     C = B̄ * Ā .÷ 2
     nzC = findnz(C)
     ikPairs = tuple.(nzC[1],nzC[2])
-    
-    s = Dict()
+    edgeMidpointLinks = fill(SVector{2,Float64}(zeros(2)), (nCells,nVerts))
+    nzC = findnz(C)
+    ikPairs = tuple.(nzC[1],nzC[2])
     for (i,k) in ikPairs
-        sᵢₖ = @SVector zeros(Float64,2)
         for j=1:nEdges
-            sᵢₖ = sᵢₖ .+ 0.5.*B[i,j]*edgeTangents[j]*Ā[j,k]
+            edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j]*edgeTangents[j]*Ā[j,k]
         end
-        s[(i,k)] = sᵢₖ
     end
-    return s
+    return edgeMidpointLinks
 end
 
 export findCellCentresOfMass
