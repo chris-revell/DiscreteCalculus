@@ -11,39 +11,22 @@ module TopologyMatrices
 # Julia packages
 using LinearAlgebra
 using SparseArrays
-using FromFile
-using DrWatson
-
-# Local modules
-@from "SenseCheck.jl" using SenseCheck
 
 function topologyMatrices(A, B)
 
     # Find adjacency matrices from incidence matrices
     Ā = abs.(A)    # All -1 components converted to +1 (In other words, create adjacency matrix Ā from incidence matrix A)Ā :==>= a:C=>bs.:(A=>(A) :  =>   #: A=> All: =>: 1 :components co=>components conv:erted to +1 (In =>erted to +1 (In ot:her words, create adjacency matrix Ā from incidence matrix A=>her words, create adjacency matrix Ā from incidence matrix A)
     B̄ = abs.(B)    # All -1 components converted to +1 (In other words, create adjacency matrix B̄ from incidence matrix B)
-
     # C adjacency matrix. Rows => cells; Columns => vertices.
     C = B̄ * Ā .÷ 2 # (NB Integer division)
     dropzeros!(C)
-
     # Update transpose matrices
     Aᵀ = Transpose(A)
     Āᵀ = abs.(Aᵀ)
     Bᵀ = Transpose(B)
     B̄ᵀ = abs.(Bᵀ)
 
-    # dropzeros!(A)
-    # dropzeros!(B)
-    # dropzeros!(C)
-    # dropzeros!(Ā)
-    # dropzeros!(B̄)
-    # dropzeros!(C)
-    # dropzeros!(Aᵀ)
-    # dropzeros!(Āᵀ)
-    # dropzeros!(Bᵀ)
-    # dropzeros!(B̄ᵀ)
-
+  
     # Calculate additional topology data
     # Number of edges around each cell found by summing columns of B̄
     cellEdgeCount = sum.(eachrow(B̄))

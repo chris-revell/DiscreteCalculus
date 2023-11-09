@@ -129,19 +129,13 @@ end
 
 function edgeMidpointLDirichlet(R, A, B)
     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
-
     cellAreas = findCellAreas(R, A, B)
-    
     edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
-
     edgeTangents = findEdgeTangents(R, A)
-    
     Ā = abs.(A)
     B̄ = abs.(B)
     C = B̄ * Ā .÷ 2
-
     vertexAreas = findVertexAreas(R, A, B)
-
     L = spzeros(Float64,(nCells,nCells))
     for k=1:nVerts
         for i in findall(x->x!=0, C[:,k])
@@ -150,36 +144,26 @@ function edgeMidpointLDirichlet(R, A, B)
             end
         end
     end
-    
     dropzeros!(L)
-    
     return L
 end
 
 
 function edgeMidpointLNeumann(R, A, B)
     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
-
     Aᵀ = Transpose(A)
     Āᵀ = abs.(Aᵀ)
     Ā = abs.(A)
     B̄ = abs.(B)
     C = B̄ * Ā .÷ 2
-
     cellAreas = findCellAreas(R, A, B)
-    
     edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
-
     boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
-
     for k in findall(x->x!=0, boundaryVertices)
         edgeMidpointLinks[:,k] .= fill(SVector{2,Float64}(zeros(2)),nCells)
     end
-
     edgeTangents = findEdgeTangents(R, A)
-    
     vertexAreas = findVertexAreas(R, A, B)
-
     L = spzeros(Float64,(nCells,nCells))
     for k=1:nVerts
         for i in findall(x->x!=0, C[:,k])
@@ -188,9 +172,7 @@ function edgeMidpointLNeumann(R, A, B)
             end
         end
     end
-    
     dropzeros!(L)
-    
     return L
 end
 
