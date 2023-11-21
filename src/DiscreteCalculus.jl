@@ -16,11 +16,9 @@ using FromFile
 
 # Local modules
 @from "GeometryFunctions.jl" using GeometryFunctions
-@from "Eigenmodes.jl" using Eigenmodes
 @from "Laplacians.jl" using Laplacians
 @from "OrderAroundCell.jl" using OrderAroundCell
-@from "SenseCheck.jl" using SenseCheck
-@from "TopologyMatrices.jl" using TopologyMatrices
+@from "TopologyFunctions.jl" using TopologyFunctions
 
 export topologyMatrices
 export getRandomColor
@@ -40,10 +38,6 @@ export calculateVertexMidpointCurls
 export calculateVertexMidpointDivs
 export calculateCellMidpointDivs
 export calculateCellMidpointCurls
-export eigenmodesLf
-export eigenmodesLc
-export eigenmodesLt
-export eigenmodesLv
 export geometricLf
 export geometricLc
 export geometricLv
@@ -69,6 +63,19 @@ export topologicalLv
 export topologicalLt
 export edgeMidpointLDirichlet
 export edgeMidpointLNeumann
+export scalarEdgeL
+export uniformCellTensionL
+export findĀ
+export findB̄
+export findC
+export findAᵀ
+export findĀᵀ
+export findBᵀ
+export findB̄ᵀ
+export findCellEdgeCount
+export findBoundaryVertices
+export findBoundaryEdges
+
 
 # export edgeMidpointLfunction
 

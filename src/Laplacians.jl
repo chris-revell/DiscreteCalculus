@@ -18,6 +18,7 @@ using StaticArrays
 
 # Local modules
 @from "GeometryFunctions.jl" using GeometryFunctions
+@from "TopologyFunctions.jl" using TopologyFunctions
 
 function geometricLf(R, A, B)
     nCells = size(B, 1)
@@ -176,6 +177,51 @@ function edgeMidpointLNeumann(R, A, B)
     return L
 end
 
+#   Lⱼⱼ′=∑ₖAⱼₖ(t̂ⱼ⋅t̂ⱼ′)Aⱼ′ₖ/Eₖ
+function scalarEdgeL(R, A, B)
+    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
+    edgeTangentsNormalised = normalize.(findEdgeTangents(R, A))
+    L = spzeros(nEdges,nEdges)
+    vertexAreas = findVertexAreas(R, A, B)
+    for k=1:nVerts
+        k_js = findall(x->x!=0,A[:,k])
+        for j in k_js
+            for j′ in k_js 
+                L[j,j′] += (edgeTangentsNormalised[j]⋅edgeTangentsNormalised[j′])*A[j,k]*A[j′,k]/vertexAreas[k]
+            end
+        end
+    end
+    dropzeros!(L)
+    return L
+end
+
+# Lᵢᵢ′ = ∑ₖB̄ᵢⱼAⱼₖ(t̂ⱼ⋅t̂ⱼ′)(Aⱼ′ₖ/Eₖ)B̄ᵢ′ⱼ′
+function uniformCellTensionL(R, A, B)
+    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
+    edgeTangentsNormalised = normalize.(findEdgeTangents(R, A))
+    L = spzeros(nCells,nCells)
+    B̄ = abs.(B)
+    C = findC(A,B)
+    vertexAreas = findVertexAreas(R, A, B)
+    for k=1:nVerts
+        k_js = findall(x->x!=0,A[:,k])
+        for j in k_js
+            for j′ in k_js 
+                j_is =findall(x->x!=0,B[:,j])#∩findall(x->x!=0,B[:,j′])
+                j′_i′s =findall(x->x!=0,B[:,j′])#∩findall(x->x!=0,B[:,j′])
+                for i in j_is
+                    for i′ in j′_i′s 
+                        L[i,i′] += (edgeTangentsNormalised[j]⋅edgeTangentsNormalised[j′])*A[j,k]*A[j′,k]*B̄[i,j]*B̄[i′,j′]/vertexAreas[k]
+                    end
+                end
+            end
+        end
+    end
+    dropzeros!(L)
+    return L
+end
+
+
 
 # function edgeMidpointLfunction(ϕᵢ, R, A, B)
     
@@ -223,6 +269,8 @@ export topologicalLv
 export topologicalLt
 export edgeMidpointLDirichlet
 export edgeMidpointLNeumann
+export scalarEdgeL
+export uniformCellTensionL
 
 # export edgeMidpointLfunction
 
