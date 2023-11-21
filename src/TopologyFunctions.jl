@@ -1,12 +1,12 @@
 #
-#  TopologyMatrices.jl
+#  TopologyFunctions.jl
 #  DiscreteCalculus
 #
 #  Created by Christopher Revell on 15/08/2023.
 #
 #
 
-module TopologyMatrices
+module TopologyFunctions
 
 # Julia packages
 using LinearAlgebra
@@ -44,6 +44,39 @@ function topologyMatrices(A, B)
 
 end
 
+findĀ(A) = abs.(A)
+findB̄(B) = abs.(B)
+findC(A, B) = dropzeros(abs.(B) * abs.(A) .÷ 2)
+findAᵀ(A) = Transpose(A)
+findĀᵀ(A) = abs.(Transpose(A))
+findBᵀ(B) = Transpose(B)
+findB̄ᵀ(B) = abs.(Transpose(B))
+findCellEdgeCount(B) = sum.(eachrow(abs.(B)))
+findBoundaryVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
+findBoundaryEdges(B) = abs.([sum(x) for x in eachcol(B)])
+
+# Function to check for nonzero values in B*A
+function senseCheck(A, B; marker="")
+    test = B*A
+    dropzeros!(test)
+    if length(findnz(test)[1]) > 0
+        throw("Non-zero values in BA: $(marker)")
+    else
+        return nothing
+    end
+end
+
 export topologyMatrices
+export findĀ
+export findB̄
+export findC
+export findAᵀ
+export findĀᵀ
+export findBᵀ
+export findB̄ᵀ
+export findCellEdgeCount
+export findBoundaryVertices
+export findBoundaryEdges
+export senseCheck
 
 end
