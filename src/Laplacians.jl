@@ -128,6 +128,7 @@ function topologicalLt(R, A, B)
     return Lₜ
 end
 
+
 function edgeMidpointLDirichlet(R, A, B)
     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
     cellAreas = findCellAreas(R, A, B)
