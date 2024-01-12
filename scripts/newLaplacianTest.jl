@@ -52,12 +52,7 @@ function gradₖ(ϕᵢ, R, A, B, ϵᵢ)
     C = B̄ * Ā .÷ 2 # (NB Integer division)
     dropzeros!(C)
     sᵢₖ = findEdgeMidpointLinks(R, A, B)
-    αₖ=Float64[]
-    for k=1:nVerts
-        k_is = findall(x->x!=0, C[:,k])
-        α = 0.5*norm([sᵢₖ[k_is[1], k]...,0.0]×[sᵢₖ[k_is[2],k]...,0.0])
-        push!(αₖ,α)
-    end
+    αₖ = findVertexAreas(R, A, B)
     edgeTangents = findEdgeTangents(R, A)
     gradϕ = fill(SVector{2,Float64}(zeros(2)),nVerts)
     for k=1:nVerts
@@ -79,18 +74,18 @@ for k in findall(x->x!=0, boundaryVertices)
     gradϕ[k] = SVector{2,Float64}(zeros(2))
 end
 
-# fig2 = Figure(resolution=(1000,1000))
-# ax2 = Axis(fig2[1,1], aspect=DataAspect())
-# hidedecorations!(ax2); hidespines!(ax2)
-# clims = (minimum(ϕᵢ),maximum(ϕᵢ))
-# for i=1:nCells
-#     poly!(ax2,cellPolygons[i],color=[ϕᵢ[i]],colorrange=clims,strokewidth=2,strokecolor=(:black,0.25))
-# end
-# arrows!(ax2, [Point2(b...) for b in R], [Vec2(0.1.*a...) for a in gradϕ])
-# xlims!(minimum(first.(R)),maximum(first.(R)))
-# ylims!(minimum(last.(R)),maximum(last.(R)))
-# display(fig2)
-# save("gradϕ_Neumann.png",fig2)
+fig2 = Figure(resolution=(1000,1000))
+ax2 = Axis(fig2[1,1], aspect=DataAspect())
+hidedecorations!(ax2); hidespines!(ax2)
+clims = (minimum(ϕᵢ),maximum(ϕᵢ))
+for i=1:nCells
+    poly!(ax2,cellPolygons[i],color=ϕᵢ[i],colorrange=clims,strokewidth=2,strokecolor=(:black,0.25))
+end
+arrows!(ax2, [Point2(b...) for b in R], [Vec2(0.1.*a...) for a in gradϕ])
+xlims!(minimum(first.(R)),maximum(first.(R)))
+ylims!(minimum(last.(R)),maximum(last.(R)))
+display(fig2)
+save(projectdir("scripts","plots","gradϕ_Neumann2.png"),fig2)
 
 
 function divᵢ(v, R, A, B, ϵᵢ)
@@ -120,7 +115,7 @@ test1 = L*ϕᵢ
 # hidedecorations!(ax1); hidespines!(ax1)
 # lims1 = (minimum(test1),maximum(test1))
 # for i=1:nCells
-#     poly!(ax1,cellPolygons[i],color=[test1[i]],colorrange=lims1,colormap=:inferno,strokecolor=(:black,1.0),strokewidth=1)
+#     poly!(ax1,cellPolygons[i],color=test1[i],colorrange=lims1,colormap=:inferno,strokecolor=(:black,1.0),strokewidth=1)
 # end
 # save("Lϕ.png",fig3)
 # display(fig3)
@@ -135,7 +130,7 @@ eigenvalues, eigenmodes = eigen(Matrix(Lₐ))
 #     empty!(ax4)
 #     lims = (-maximum(abs.(eigenmodes[:,mode])),maximum(abs.(eigenmodes[:,mode])))
 #     for i=1:nCells
-#         poly!(ax4,cellPolygons[i],color=[eigenmodes[i,mode]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.25))
+#         poly!(ax4,cellPolygons[i],color=eigenmodes[i,mode],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.25))
 #     end
 #     save("eigenmodes/mode$(@sprintf("%03d", mode)).png",fig4)
 #     # display(fig4)
@@ -160,4 +155,4 @@ end
 # display(fig5)
 
 
-fig6 = 
+# fig6 = 
