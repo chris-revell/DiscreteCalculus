@@ -92,7 +92,7 @@ save(projectdir("scripts","plots","uniformCellTensionLEigenmodeSpectrum2.png"),f
 #     empty!(ax4)
 #     lims = (-maximum(abs.(eigenmodes[:,mode])),maximum(abs.(eigenmodes[:,mode])))
 #     for i=1:nCells
-#         poly!(ax4,cellPolygons[i],color=[eigenmodes[i,mode]],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.25))
+#         poly!(ax4,cellPolygons[i],color=eigenmodes[i,mode],colorrange=lims,colormap=:bwr,strokewidth=2,strokecolor=(:black,0.25))
 #     end
 #     save("test/plots/scalarEdgeNonlocalTensionLeigenmodes/scalarEdgeNonlocalTensionL_mode$(@sprintf("%03d", mode)).png",fig4)
 #     # display(fig4)
