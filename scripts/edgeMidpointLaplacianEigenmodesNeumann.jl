@@ -11,7 +11,7 @@ using LinearAlgebra
 using Printf
 using StaticVectors
 
-@unpack matrices, R = load(projectdir("scripts","referenceMatrices2.jld2"))
+@unpack matrices, R = load(projectdir("scripts","referenceMatrices3.jld2"))
 @unpack A, B = matrices
 
 nCells = size(B,1)
@@ -63,12 +63,12 @@ end
 
 resize_to_layout!(fig)
 # display(fig)
-save(projectdir("scripts","plots","edgeMidpointLaplacianNeumannEigenmodeTableau2.png"),fig)
+save(projectdir("scripts","plots","edgeMidpointLaplacianNeumannEigenmodeTableau3.png"),fig)
 
 fig2 = Figure()
 ax2 = Axis(fig2[1,1])
 scatter!(ax2, collect(1:length(eigenvalues)), eigenvalues)
 ax2.xlabel ="Eigenmode number"
 ax2.ylabel ="Eigenvalue"
-save(projectdir("scripts","plots","edgeMidpointLaplacianNeumannEigenvalueSpectrum2.png"),fig2)
+save(projectdir("scripts","plots","edgeMidpointLaplacianNeumannEigenvalueSpectrum3.png"),fig2)
 # display(fig2)

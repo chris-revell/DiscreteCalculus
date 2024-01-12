@@ -11,7 +11,7 @@ using LinearAlgebra
 using Printf
 using StaticVectors
 
-@unpack matrices, R = load(projectdir("scripts","referenceMatrices2.jld2"))
+@unpack matrices, R = load(projectdir("scripts","referenceMatrices3.jld2"))
 @unpack A, B = matrices
 
 nCells = size(B,1)
@@ -85,7 +85,7 @@ arrows!(ax2, [Point2(b...) for b in R], [Vec2(0.1.*a...) for a in gradϕ])
 xlims!(minimum(first.(R)),maximum(first.(R)))
 ylims!(minimum(last.(R)),maximum(last.(R)))
 display(fig2)
-save(projectdir("scripts","plots","gradϕ_Neumann2.png"),fig2)
+save(projectdir("scripts","plots","gradϕ_Neumann3.png"),fig2)
 
 
 function divᵢ(v, R, A, B, ϵᵢ)
