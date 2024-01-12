@@ -12,7 +12,7 @@ using CairoMakie
 
 folderName = "newlongTest/L₀=0.75_realTimetMax=86400.0_t1Threshold=0.01_γ=0.2_23-03-08-20-49-23"
 
-fig = CairoMakie.Figure(resolution=(1000,1000))
+fig = CairoMakie.Figure(size=(1000,1000))
 ax = Axis(fig[1,1][1,1],aspect=DataAspect())
 hidedecorations!(ax)
 hidespines!(ax)
@@ -41,7 +41,7 @@ for t=0:100
     xlims!(ax, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
     ylims!(ax, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))
     for k=1:nVerts
-        poly!(ax,linkTriangles[k],color=[potentials[t+1][k]],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
+        poly!(ax,linkTriangles[k],color=potentials[t+1][k],colorrange=ψ̆Lims,colormap=:bwr,strokewidth=1,strokecolor=(:black,0.25))
     end
     for i=1:nCells
         poly!(ax,cellPolygons[i],color=(:white,0.0),strokecolor=(:black,1.0),strokewidth=1)
