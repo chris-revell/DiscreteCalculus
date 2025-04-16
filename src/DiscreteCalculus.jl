@@ -65,13 +65,13 @@ export edgeMidpointLDirichlet
 export edgeMidpointLNeumann
 export scalarEdgeL
 export uniformCellTensionL
-export findĀ
-export findB̄
-export findC
-export findAᵀ
-export findĀᵀ
-export findBᵀ
-export findB̄ᵀ
+# export findĀ
+# export findB̄
+# export findC
+# export findAᵀ
+# export findĀᵀ
+# export findBᵀ
+# export findB̄ᵀ
 export findCellEdgeCount
 export findBoundaryVertices
 export findBoundaryEdges

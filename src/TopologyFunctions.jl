@@ -11,6 +11,10 @@ module TopologyFunctions
 # Julia packages
 using LinearAlgebra
 using SparseArrays
+using CircularArrays
+using FromFile 
+
+@from "$(srcdir("OrderAroundCell.jl"))" using OrderAroundCell
 
 function topologyMatrices(A, B)
 
@@ -40,8 +44,13 @@ function topologyMatrices(A, B)
     # Find list of edges at system periphery
     boundaryEdges = abs.([sum(x) for x in eachcol(B)])
 
-    return Dict(:Ā=>Ā, :B̄=>B̄, :C=>C, :Aᵀ=>Aᵀ, :Āᵀ=>Āᵀ, :Bᵀ=>Bᵀ, :B̄ᵀ=>B̄ᵀ, :cellEdgeCount=>cellEdgeCount, :boundaryVertices=>boundaryVertices, :boundaryEdges=>boundaryEdges)
+    cellVertexOrders  = fill(CircularVector(Int64[]), size(B, 1))
+    cellEdgeOrders    = fill(CircularVector(Int64[]), size(B, 1))
+    for i = 1:size(B,1)
+        cellVertexOrders[i], cellEdgeOrders[i] = orderAroundCell(matrices, i)
+    end
 
+    return Dict(:Ā=>Ā, :B̄=>B̄, :C=>C, :Aᵀ=>Aᵀ, :Āᵀ=>Āᵀ, :Bᵀ=>Bᵀ, :B̄ᵀ=>B̄ᵀ, :cellEdgeCount=>cellEdgeCount, :boundaryVertices=>boundaryVertices, :boundaryEdges=>boundaryEdges, :cellVertexOrders=>cellVertexOrders, :cellEdgeOrders=>cellEdgeOrders)
 end
 
 findĀ(A) = abs.(A)

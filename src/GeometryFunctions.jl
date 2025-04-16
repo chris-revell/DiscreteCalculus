@@ -4,7 +4,7 @@
 #
 #  Created by Christopher Revell on 16/08/2023.
 #
-#
+# A set of functions to derive objects that depend on system topology and spatial information 
 
 module GeometryFunctions
 
@@ -18,41 +18,52 @@ using FromFile
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
-
-
-function findCellCentresOfMass(R, A, B) 
-    C = abs.(B) * abs.(A) .÷ 2
-    cellEdgeCount = sum.(eachrow(abs.(B)))
-    return C*R./cellEdgeCount
-end 
+@from "TopologyFunctions.jl" using TopologyFunctions
 
 findEdgeTangents(R, A) = A*R
 
 findEdgeLengths(R, A) = norm.(A*R)
 
-findEdgeMidpoints(R, A) = 0.5.*abs.(A)*R    # 0.5.*Ā*R
+findEdgeMidpoints(R, A) = 0.5.*abs.(A)*R
+
+function findCellCentresOfMass(R, A, B) = findC(A, B)*R./findCellEdgeCount(B) # C*R./cellEdgeCount
     
-function findCellPerimeterLengths(R, A, B) 
-    edgeLengths = norm.(A*R)
-    return abs.(B)*edgeLengths # B̄*edgeLengths
-end 
+findCellPerimeterLengths(R, A, B) = abs.(B)*norm.(A*R) # B̄*edgeLengths
+
+fill!(edgeMidpointLinks, SVector{2,Float64}(zeros(2)))
+    dropzeros!(edgeMidpointLinks)
+    nzC = findnz(C)
+    ikPairs = tuple.(nzC[1], nzC[2])
+    for (i, k) in ikPairs
+        for j in cellEdgeOrders[i]
+            edgeMidpointLinks[i, k] = edgeMidpointLinks[i, k] .+ 0.5 .* B[i, j] .* edgeTangents[j] .* Ā[j, k]
+        end
+    end
 
 function findCellAreas(R, A, B)
-    nCells = size(B,1)
-    Bᵀ = sparse(Transpose(B)) # Have to convert transpose type to sparse type here because nzrange won't operate on a transpose type object
-    edgeTangents = A*R
-    edgeMidpoints = 0.5.*abs.(A)*R
-    # Calculate oriented cell areas    
-    cellOrientedAreas = fill(SMatrix{2,2}(zeros(2,2)),nCells)
-    cellAreas = zeros(nCells)
-    for i=1:nCells
-        for j in nzrange(Bᵀ,i)
-            cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
-        end
-        cellAreas[i] = cellOrientedAreas[i][1,2]
+    cellAreas = Float64[]
+    for i=1:size(B,1)
+        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
+        push!(cellAreas, area.(Point{2,Float64}.(R[orderedVertices])))
     end
-    return cellAreas 
 end
+
+# function findCellAreas(R, A, B)
+#     nCells = size(B,1)
+#     Bᵀ = sparse(Transpose(B)) # Have to convert transpose type to sparse type here because nzrange won't operate on a transpose type object
+#     edgeTangents = A*R
+#     edgeMidpoints = 0.5.*abs.(A)*R
+#     # Calculate oriented cell areas    
+#     cellOrientedAreas = fill(SMatrix{2,2}(zeros(2,2)),nCells)
+#     cellAreas = zeros(nCells)
+#     for i=1:nCells
+#         for j in nzrange(Bᵀ,i)
+#             cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
+#         end
+#         cellAreas[i] = cellOrientedAreas[i][1,2]
+#     end
+#     return cellAreas 
+# end
 
 function findVertexAreas(R, A, B)
     nVerts = size(A,2)
@@ -82,11 +93,10 @@ function findVertexAreas(R, A, B)
 end
 
 function makeCellPolygons(R, A, B)
-    nCells = size(B, 1)
     cellPolygons = Vector{Point2f}[]
-    for indexCell = 1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(A, B, indexCell)
-        push!(cellPolygons, Point2f.(R[orderedVertices]))
+    for i = 1:size(B, 1)
+        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
+        push!(cellPolygons, Point{2, Float64}.(R[orderedVertices]))
     end
     return cellPolygons
 end
@@ -174,16 +184,16 @@ function makeEdgeMidpointPolygons(R, A, B)
     return edgeMidpointPolygons
 end
 
-function makeCellVerticesDict(A, B)
-    nCells = size(B, 1)
-    cellVerticesDict = Dict()
-    for i = 1:nCells
-        cellVertices, cellEdges = orderAroundCell(A, B, indexCell)
-        # Store sorted cell vertices for this cell
-        cellVerticesDict[i] = cellVertices
-    end
-    return cellVerticesDict
-end
+# function makeCellVerticesDict(A, B)
+#     nCells = size(B, 1)
+#     cellVerticesDict = Dict()
+#     for i = 1:nCells
+#         cellVertices, cellEdges = orderAroundCell(A, B, indexCell)
+#         # Store sorted cell vertices for this cell
+#         cellVerticesDict[i] = cellVertices
+#     end
+#     return cellVerticesDict
+# end
 
 function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
     nEdges = size(B, 2)
@@ -228,21 +238,15 @@ end
 
 # sᵢₖ = ∑ⱼ(1/2)BᵢⱼtⱼĀⱼₖ
 function findEdgeMidpointLinks(R, A, B)
-    nCells = size(B,1)
-    nEdges = size(B,2)
-    nVerts = size(A,2)
-    edgeTangents = A*R
+    spzeros(SVector{2,Float64}, size(B,1), size(A,2))
     Ā = abs.(A)
-    B̄ = abs.(B)
-    C = B̄ * Ā .÷ 2
+    C = findC(A, B)
+    edgeTangents = findEdgeTangents(R, A)
     nzC = findnz(C)
-    ikPairs = tuple.(nzC[1],nzC[2])
-    edgeMidpointLinks = fill(SVector{2,Float64}(zeros(2)), (nCells,nVerts))
-    nzC = findnz(C)
-    ikPairs = tuple.(nzC[1],nzC[2])
-    for (i,k) in ikPairs
-        for j=1:nEdges
-            edgeMidpointLinks[i,k] = edgeMidpointLinks[i,k] .+ 0.5.*B[i,j]*edgeTangents[j]*Ā[j,k]
+    ikPairs = tuple.(nzC[1], nzC[2])
+    for (i, k) in ikPairs
+        for j in cellEdgeOrders[i]
+            edgeMidpointLinks[i, k] = edgeMidpointLinks[i, k] .+ 0.5 .* B[i, j] .* edgeTangents[j] .* Ā[j, k]
         end
     end
     return edgeMidpointLinks

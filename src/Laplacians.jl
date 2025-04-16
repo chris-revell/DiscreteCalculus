@@ -86,7 +86,7 @@ function geometricLt(R, A, B)
     return Lₜ
 end
 
-function topologicalLf(R, A, B)
+function topologicalLf(A, B)
     nCells = size(B, 1)
     Bᵀ = Transpose(B)
     onesVec = ones(1, nCells)
@@ -101,7 +101,7 @@ function topologicalLf(R, A, B)
     return Lf
 end
 
-function topologicalLc(R, A, B)
+function topologicalLc(A, B)
     nCells = size(B, 1)
     Bᵀ = Transpose(B)
     onesVec = ones(1, nCells)
@@ -114,14 +114,14 @@ function topologicalLc(R, A, B)
     return Lc
 end
 
-function topologicalLv(R, A, B)
+function topologicalLv(A, B)
     Aᵀ = Transpose(A)
     Lᵥ = Aᵀ * A
     dropzeros!(Lᵥ)
     return Lᵥ
 end
 
-function topologicalLt(R, A, B)
+function topologicalLt(A, B)
     Aᵀ = Transpose(A)
     Lₜ = Aᵀ * A
     dropzeros!(Lₜ)
