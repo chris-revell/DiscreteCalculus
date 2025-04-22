@@ -34,8 +34,8 @@ for t=0:100
     @unpack B, Bᵀ, C, cellCentresOfMass = matrices
     @unpack nCells, nVerts = params
     
-    cellPolygons = makeCellPolygons(R,A,B)
-    linkTriangles = makeLinkTriangles(R,params,matrices)
+    cellPolygons = findCellPolygons(R,A,B)
+    linkTriangles = findCellLinkTriangles(R,params,matrices)
     empty!(ax)
     ax.title = "t = $(@sprintf("%.2f", t))"
     xlims!(ax, 1.1*min(minimum(first.(R)), minimum(last.(R))), 1.1*max(maximum(first.(R)), maximum(last.(R))))

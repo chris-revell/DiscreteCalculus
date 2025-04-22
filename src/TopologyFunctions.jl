@@ -13,8 +13,9 @@ using LinearAlgebra
 using SparseArrays
 using CircularArrays
 using FromFile 
+using DrWatson
 
-@from "$(srcdir("OrderAroundCell.jl"))" using OrderAroundCell
+@from "OrderAroundCell.jl" using OrderAroundCell
 
 function topologyMatrices(A, B)
 

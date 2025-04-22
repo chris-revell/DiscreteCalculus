@@ -20,10 +20,10 @@ using GeometryBasics
 @from "Laplacians.jl" using Laplacians
 
 function psicPotential(nCells, nEdges, nVerts, R, A, B, C, F, boundaryVertices, cellCentresOfMass, cellAreas, edgeMidpoints, edgeTangents, ϵᵢ)
-    T = makeCellLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
-    edgeTrapezia = makeEdgeTrapezia(nEdges, R, A, B, cellCentresOfMass)
+    T = findCellCentreLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
+    edgeTrapezia = findEdgeTrapezia(nEdges, R, A, B, cellCentresOfMass)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
+    linkTriangles = findCellLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
     linkTriangleAreas = abs.(area.(linkTriangles))
     Lf = geometricLf(nCells,B,Bᵀ,cellAreas,edgeLengths)
     cellDivs = -1.0.*calculateCellDivs(nCells, R, B, C, F, cellCentresOfMass, edgeMidpoints, edgeTangents, cellAreas, ϵᵢ)
@@ -45,12 +45,12 @@ function psicPotential(nCells, nEdges, nVerts, R, A, B, C, F, boundaryVertices, 
 end
 
 function psivPotential(nCells, nEdges, nVerts, R, A, Aᵀ, B, C, F, ϵᵢ, boundaryVertices, cellCentresOfMass, edgeMidpoints)
-    T = makeCellLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
-    edgeTrapezia = makeEdgeTrapezia(nEdges, R, A, B, cellCentresOfMass)
+    T = findCellCentreLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
+    edgeTrapezia = findEdgeTrapezia(nEdges, R, A, B, cellCentresOfMass)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
+    linkTriangles = findCellLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
     linkTriangleAreas = abs.(area.(linkTriangles))
-    q = makeSpokes(nVerts, nCells, R, C, cellCentresOfMass)
+    q = findSpokes(nVerts, nCells, R, C, cellCentresOfMass)
     Lₜ = geometricLt(A,Aᵀ,T,linkTriangleAreas,trapeziumAreas)
     eigenvectors = (eigen(Matrix(Lₜ))).vectors
     eigenvalues = (eigen(Matrix(Lₜ))).values
@@ -71,15 +71,15 @@ function psivPotential(nCells, nEdges, nVerts, R, A, Aᵀ, B, C, F, ϵᵢ, bound
 end
 
 function capitalPsivPotential(nCells, nEdges, nVerts, R, A, B, C, F, ϵᵢ, boundaryVertices, cellCentresOfMass, edgeMidpoints)
-    T = makeCellLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
-    edgeTrapezia = makeEdgeTrapezia(nEdges, R, A, B, cellCentresOfMass)
+    T = findCellCentreLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
+    edgeTrapezia = findEdgeTrapezia(nEdges, R, A, B, cellCentresOfMass)
     trapeziumAreas = abs.(area.(edgeTrapezia))
-    linkTriangles = makeLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
+    linkTriangles = findCellLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
     linkTriangleAreas = abs.(area.(linkTriangles))
     Lₜ = geometricLt(A,Aᵀ,T,linkTriangleAreas,trapeziumAreas)
     eigenvectors = (eigen(Matrix(Lₜ))).vectors
     eigenvalues = (eigen(Matrix(Lₜ))).values
-    q = makeSpokes(nVerts, nCells, R, C, cellCentresOfMass)
+    q = findSpokes(nVerts, nCells, R, C, cellCentresOfMass)
     vertexCurls = calculateVertexCurls(nVerts, R, C, cellCentresOfMass, F, ϵᵢ, q, linkTriangleAreas)
     onesVec = ones(nVerts)
     E = Diagonal(linkTriangleAreas)

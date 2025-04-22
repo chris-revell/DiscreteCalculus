@@ -22,18 +22,18 @@ using FromFile
 
 export topologyMatrices
 export getRandomColor
-export makeCellPolygons
-export makeCellLinks
-export makeLinkTriangles
-export makeEdgeTrapezia
-export makeEdgeMidpointPolygons
+export findCellPolygons
+export findCellCentreLinks
+export findCellLinkTriangles
+export findEdgeTrapezia
+export findEdgeMidpointPolygons
 export calculateCellCurls
 export calculateCellDivs
 export calculateVertexDivs
 export calculateVertexCurls
 export makeCellVerticesDict
 export findEdgeLinkMidpoints
-export makeSpokes
+export findSpokes
 export calculateVertexMidpointCurls
 export calculateVertexMidpointDivs
 export calculateCellMidpointDivs

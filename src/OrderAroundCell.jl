@@ -9,6 +9,7 @@
 # and a *circular* array of edge labels in the correct clockwise order around a cell,
 # noting that the first vertex in orderedVertices is on the clockwise end of the first edge in orderedEdges
 # ie orderedEdges[1] is the most anticlockwise-ward of the full set of edges and vertices
+# ie clockwise order goes orderedEdges[1], orderedVerts[1], orderedEdges[2], orderedVerts[2]...
 
 module OrderAroundCell
 
