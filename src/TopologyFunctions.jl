@@ -65,6 +65,12 @@ findCellEdgeCount(B) = sum.(eachrow(abs.(B)))
 findBoundaryVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
 findBoundaryEdges(B) = abs.([sum(x) for x in eachcol(B)])
 
+function findBoundaryCells(B)
+    boundaryEdges = findBoundaryEdges(B)
+    boundaryCells = findnz(B[:, boundaryEdges.==1])[1]
+    return boundaryCells
+end
+
 # Function to check for nonzero values in B*A
 function senseCheck(A, B; marker="")
     test = B*A
@@ -87,6 +93,7 @@ export findB̄ᵀ
 export findCellEdgeCount
 export findBoundaryVertices
 export findBoundaryEdges
+export findBoundaryCells
 export senseCheck
 
 end

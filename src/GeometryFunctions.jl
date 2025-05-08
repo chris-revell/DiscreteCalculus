@@ -5,6 +5,9 @@
 #  Created by Christopher Revell on 16/08/2023.
 #
 # A set of functions to derive objects that depend on system topology and spatial information 
+# nVerts => Number of vertices in network
+# nEdges => Number of edges in network
+# nCells => Number of cells in network
 
 module GeometryFunctions
 
@@ -21,27 +24,33 @@ using FromFile
 @from "TopologyFunctions.jl" using TopologyFunctions
 
 # Function that returns a vector of SVectors corresponding to the tangent vectors of each edge in the network, with length equal to the length of the edge
+# Conventional variable name 𝓉ⱼ
 # 𝐭 = AR
 findEdgeTangents(R, A) = A*R
 
 # Function that returns a vector of floats corresponding to the lengths of each edge in the network
+# Conventional variable name ???
 # t = |AR| 
 findEdgeLengths(R, A) = norm.(A*R)
 
 # Function that returns a vector of SVectors corresponding to the midpoint locations of each edge in the network
+# Conventional variable name 𝒸ⱼ
 # = ĀR/2
 findEdgeMidpoints(R, A) = 0.5.*abs.(A)*R
 
 # Function that returns a vector of SVectors corresponding to the centre of mass locations of each cell in the network,
 # assuming that cells have mass only in their vertices, and each vertex has the same mass. 
+# Conventional variable name ???
 # = CR/n
 findCellCentresOfMass(R, A, B) = findC(A, B)*R./findCellEdgeCount(B)
 
 # Function that returns a vector of floats corresponding to the perimeter lengths of each cell in the network
+# Conventional variable name ???
 # = B̄t 
 findCellPerimeterLengths(R, A, B) = abs.(B)*norm.(A*R)
 
 # Function that returns a vector of floats corresponding to the areas of each cell in the network, using the GeometryBasics area() function for simplicity
+# Conventional variable name Aᵢ
 function findCellAreas(R, A, B)
     cellAreas = Float64[]
     for i=1:size(B,1)
@@ -51,27 +60,10 @@ function findCellAreas(R, A, B)
     return cellAreas
 end
 
-# function findCellAreas(R, A, B)
-#     nCells = size(B,1)
-#     Bᵀ = sparse(Transpose(B)) # Have to convert transpose type to sparse type here because nzrange won't operate on a transpose type object
-#     edgeTangents = A*R
-#     edgeMidpoints = 0.5.*abs.(A)*R
-#     # Calculate oriented cell areas    
-#     cellOrientedAreas = fill(SMatrix{2,2}(zeros(2,2)),nCells)
-#     cellAreas = zeros(nCells)
-#     for i=1:nCells
-#         for j in nzrange(Bᵀ,i)
-#             cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
-#         end
-#         cellAreas[i] = cellOrientedAreas[i][1,2]
-#     end
-#     return cellAreas 
-# end
-
-
 # Function that returns a vector of floats corresponding to the areas surrounding each vertex in the network.
 # For internal vertices this area is bounded by the lines connecting adjacent edge midpoints. For peripheral vertices, 
 # it is a the area of the quadrilateral formed by adjacent edge midpoint links and 2 adjacent peripheral edges.
+# Conventional variable name Dₖ
 function findVertexAreas(R, A, B)
     nVerts = size(A,2)
     edgeTangents = findEdgeTangents(R, A)
@@ -102,6 +94,8 @@ function findVertexAreas(R, A, B)
     return vertexAreas
 end
 
+# Function that returns a vector of polygons for each cell, where each polygon is a vector of Point{2,Float64} objects from GeometryBasics.jl.
+# This construction is primarily useful for plotting or for area calculations.
 function findCellPolygons(R, A, B)
     cellPolygons = Vector{Point{2,Float64}}[]
     for i = 1:size(B, 1)
@@ -111,6 +105,9 @@ function findCellPolygons(R, A, B)
     return cellPolygons
 end
 
+# Function that returns a vector of SVectors with nEdges components, where each component 
+# corresponds to the vector connecting cell centres of mass across the corresponding edge. 
+# Conventional variable name Tⱼ
 function findCellCentreLinks(R, A, B)
     nCells = size(B, 1)
     nEdges = size(B, 2)
@@ -130,6 +127,17 @@ function findCellCentreLinks(R, A, B)
     return T
 end
 
+function findCellCentreLinkLengths(R, A, B)
+    T = findCellCentreLinks(R, A, B)
+    return norm.(T)
+end
+
+
+# Function that returns a vector with length equal to the number of vertices, 
+# where each components is a vector of Point objects forming the triangle formed around the corresonding vertex 
+# by the lines connecting adjacent cell centroids. In the case of peripheral vertices, the function instead forms 
+# a polygon around the vertex from adjacent cell centroids and peripheral edge midpoints.
+# Conventional variable name Eₖ
 function findCellLinkTriangles(R, A, B)
     nCells = size(B, 1)
     nVerts = size(A, 2)
@@ -168,20 +176,34 @@ function findCellLinkTriangles(R, A, B)
     return linkTriangles
 end
 
-function findEdgeTrapezia(R, A, B)
+function findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkTriangles(R, A, B)
+    return area.(Eₖ)
+end
+
+# Function that returns a vector of floats with length nEdges where each element corresponds to an edge and gives the area of the quadrilateral 
+# formed by the vertices at each end of the edge and the centroids of the cells adjacent to the edge. In the case of a peripheral edge this is instead 
+# a triangle formed with only one cell centroid 
+# This area is equivalent to 0.5*Fⱼ in the conventional naming convention 
+function findEdgeQuadrilaterals(R, A, B)
     nEdges = size(B, 2)
     cellCentresOfMass = findCellCentresOfMass(R, A, B)
-    edgeTrapezia = Vector{Point{2,Float64}}[]
+    edgeQuadrilaterals = Vector{Point{2,Float64}}[]
     for j = 1:nEdges
         edgeCells = findall(x -> x != 0, B[:, j])
         edgeVertices = findall(x -> x != 0, A[j, :])
         if length(edgeCells) > 1
-            push!(edgeTrapezia, Point{2,Float64}.([R[edgeVertices[1]], cellCentresOfMass[edgeCells[1]], R[edgeVertices[2]], cellCentresOfMass[edgeCells[2]]]))
+            push!(edgeQuadrilaterals, Point{2,Float64}.([R[edgeVertices[1]], cellCentresOfMass[edgeCells[1]], R[edgeVertices[2]], cellCentresOfMass[edgeCells[2]]]))
         else
-            push!(edgeTrapezia, Point{2,Float64}.([R[edgeVertices[1]], cellCentresOfMass[edgeCells[1]], R[edgeVertices[2]]]))
+            push!(edgeQuadrilaterals, Point{2,Float64}.([R[edgeVertices[1]], cellCentresOfMass[edgeCells[1]], R[edgeVertices[2]]]))
         end
     end
-    return edgeTrapezia
+    return edgeQuadrilaterals
+end
+
+function findEdgeQuadrilateralAreas(R, A, B)
+    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
+    return area.(edgeQuadrilaterals)
 end
 
 function findEdgeMidpointPolygons(R, A, B)
@@ -189,30 +211,19 @@ function findEdgeMidpointPolygons(R, A, B)
     edgeMidpoints = findEdgeMidpoints(R, A)
     edgeMidpointPolygons = Vector{Point{2,Float64}}[]
     for i = 1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(A, B, indexCell)
+        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
         push!(edgeMidpointPolygons, Point{2,Float64}.(edgeMidpoints[orderedEdges]))
     end
     return edgeMidpointPolygons
 end
-
-# function makeCellVerticesDict(A, B)
-#     nCells = size(B, 1)
-#     cellVerticesDict = Dict()
-#     for i = 1:nCells
-#         cellVertices, cellEdges = orderAroundCell(A, B, indexCell)
-#         # Store sorted cell vertices for this cell
-#         cellVerticesDict[i] = cellVertices
-#     end
-#     return cellVerticesDict
-# end
 
 function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
     nEdges = size(B, 2)
     cellCentresOfMass = findCellCentresOfMass(R, A, B)
     edgeTangents = findEdgeTangents(R, A)
     edgeMidpoints = findEdgeMidpoints(R, A)
-    edgeTrapezia = findEdgeTrapezia(R, A, B)
-    trapeziumAreas = abs.(area.(edgeTrapezia))
+    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
+    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     T = findCellCentreLinks(R, A, B)
     # Rotation matrix around vertices is the opposite of that around cells
     ϵₖ = -1 * ϵᵢ
@@ -253,6 +264,10 @@ function findEdgeMidpointLinks(R, A, B)
     Ā = abs.(A)
     C = findC(A, B)
     edgeTangents = findEdgeTangents(R, A)
+    cellVertexOrders  = fill(CircularVector(Int64[]), size(B,1)),
+    for i = 1:size(B,1)
+        cellVertexOrders[i], cellEdgeOrders[i] = orderAroundCell(A, B, i)
+    end
     nzC = findnz(C)
     ikPairs = tuple.(nzC[1], nzC[2])
     for (i, k) in ikPairs
@@ -273,12 +288,36 @@ export findCellAreas
 export findVertexAreas
 export findCellPolygons
 export findCellCentreLinks
+export findCellCentreLinkLengths
 export findCellLinkTriangles
-export findEdgeTrapezia
+export findCellLinkTriangleAreas
+export findEdgeQuadrilaterals
+export findEdgeQuadrilateralAreas
 export findEdgeMidpointPolygons
-export makeCellVerticesDict
 export findEdgeLinkMidpoints
 export findSpokes
 export findEdgeMidpointLinks
 
 end #end module 
+
+
+
+
+
+
+# function findCellAreas(R, A, B)
+#     nCells = size(B,1)
+#     Bᵀ = sparse(Transpose(B)) # Have to convert transpose type to sparse type here because nzrange won't operate on a transpose type object
+#     edgeTangents = A*R
+#     edgeMidpoints = 0.5.*abs.(A)*R
+#     # Calculate oriented cell areas    
+#     cellOrientedAreas = fill(SMatrix{2,2}(zeros(2,2)),nCells)
+#     cellAreas = zeros(nCells)
+#     for i=1:nCells
+#         for j in nzrange(Bᵀ,i)
+#             cellOrientedAreas[i] += B[i,rowvals(Bᵀ)[j]].*edgeTangents[rowvals(Bᵀ)[j]]*edgeMidpoints[rowvals(Bᵀ)[j]]'            
+#         end
+#         cellAreas[i] = cellOrientedAreas[i][1,2]
+#     end
+#     return cellAreas 
+# end

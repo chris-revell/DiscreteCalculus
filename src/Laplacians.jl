@@ -25,8 +25,8 @@ function geometricLf(R, A, B)
     Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
     edgeLengths = findEdgeLengths(R, A)
-    edgeTrapezia = findEdgeTrapezia(R, A, B)
-    trapeziumAreas = abs.(area.(edgeTrapezia))
+    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
+    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     onesVec = ones(1, nCells)
     boundaryEdges = abs.(onesVec * B)
     H = Diagonal(cellAreas)
@@ -44,8 +44,8 @@ function geometricLc(R, A, B)
     Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
     T = findCellCentreLinks(R, A, B)
-    edgeTrapezia = findEdgeTrapezia(R, A, B)
-    trapeziumAreas = abs.(area.(edgeTrapezia))
+    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
+    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     onesVec = ones(1, nCells)
     boundaryEdges = abs.(onesVec * B)
     boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
@@ -63,8 +63,8 @@ function geometricLv(R, A, B)
     edgeLengths = findEdgeLengths(R, A)
     linkTriangles = findCellLinkTriangles(R, A, B)
     linkTriangleAreas = abs.(area.(linkTriangles))
-    edgeTrapezia = findEdgeTrapezia(R, A, B)
-    trapeziumAreas = abs.(area.(edgeTrapezia))
+    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
+    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     E = Diagonal(linkTriangleAreas)
     Tₑ = Diagonal((edgeLengths .^ 2) ./ (2.0 .* trapeziumAreas))
     Lᵥ = (E \ Aᵀ) * (Tₑ \ A)
@@ -77,8 +77,8 @@ function geometricLt(R, A, B)
     T = findCellCentreLinks(R, A, B)
     linkTriangles = findCellLinkTriangles(R, A, B)
     linkTriangleAreas = abs.(area.(linkTriangles))
-    edgeTrapezia = findEdgeTrapezia(R, A, B)
-    trapeziumAreas = abs.(area.(edgeTrapezia))
+    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
+    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     E = Diagonal(linkTriangleAreas)
     Tₗ = Diagonal(((norm.(T)) .^ 2) ./ (2.0 .* trapeziumAreas))
     Lₜ = (E \ Aᵀ) * Tₗ * A
@@ -258,8 +258,6 @@ end
 #     return Lϕ
 # end
 
-
-
 export geometricLf
 export geometricLc
 export geometricLv
@@ -272,7 +270,5 @@ export edgeMidpointLDirichlet
 export edgeMidpointLNeumann
 export scalarEdgeL
 export uniformCellTensionL
-
-# export edgeMidpointLfunction
 
 end #end module 

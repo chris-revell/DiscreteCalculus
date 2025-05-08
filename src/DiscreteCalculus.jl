@@ -19,6 +19,7 @@ using FromFile
 @from "Laplacians.jl" using Laplacians
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "TopologyFunctions.jl" using TopologyFunctions
+@from "HNetwork.jl" using HNetwork
 
 export topologyMatrices
 export findĀ
@@ -31,6 +32,7 @@ export findB̄ᵀ
 export findCellEdgeCount
 export findBoundaryVertices
 export findBoundaryEdges
+export findBoundaryCells
 export senseCheck
 
 export findCellCentresOfMass
@@ -43,74 +45,49 @@ export findCellAreas
 export findVertexAreas
 export findCellPolygons
 export findCellCentreLinks
+export findCellCentreLinkLengths
 export findCellLinkTriangles
+export findCellLinkTriangleAreas
 export findEdgeQuadrilaterals
+export findEdgeQuadrilateralAreas
 export findEdgeMidpointPolygons
 export findEdgeLinkMidpoints
 export findSpokes
 export findEdgeMidpointLinks
 
 export orderAroundCell
+export cellNeighbourOrder
 
+export hNetwork
 
+export geometricLf
+export geometricLc
+export geometricLv
+export geometricLt
+export topologicalLf
+export topologicalLc
+export topologicalLv
+export topologicalLt
+export edgeMidpointLDirichlet
+export edgeMidpointLNeumann
+export scalarEdgeL
+export uniformCellTensionL
 
-# export topologyMatrices
-# export getRandomColor
-# export findCellPolygons
-# export findCellCentreLinks
-# export findCellLinkTriangles
-# export findEdgeQuadrilaterals
-# export findEdgeMidpointPolygons
-# export calculateCellCurls
-# export calculateCellDivs
-# export calculateVertexDivs
-# export calculateVertexCurls
-# export makeCellVerticesDict
-# export findEdgeLinkMidpoints
-# export findSpokes
-# export calculateVertexMidpointCurls
-# export calculateVertexMidpointDivs
-# export calculateCellMidpointDivs
-# export calculateCellMidpointCurls
-# export geometricLf
-# export geometricLc
-# export geometricLv
-# export geometricLt
-# export orderAroundCell
-# export psicPotential
-# export psivPotential
-# export capitalPsivPotential
-# export senseCheck
-# export findCellCentresOfMass
-# export findEdgeTangents
-# export findEdgeLengths
-# export findEdgeLengths
-# export findEdgeMidpoints
-# export findEdgeMidpointLinks
-# export findCellPerimeterLengths
-# export findCellAreas
-# export findVertexAreas
-# export topologyMatrices
-# export topologicalLf
-# export topologicalLc
-# export topologicalLv
-# export topologicalLt
-# export edgeMidpointLDirichlet
-# export edgeMidpointLNeumann
-# export scalarEdgeL
-# export uniformCellTensionL
-# # export findĀ
-# # export findB̄
-# # export findC
-# # export findAᵀ
-# # export findĀᵀ
-# # export findBᵀ
-# # export findB̄ᵀ
-# export findCellEdgeCount
-# export findBoundaryVertices
-# export findBoundaryEdges
+export gradᵛ
+export curlᶜ
+export gradᶜ
+export curlᵛ
+export rotᵛ
+export divᶜ
+export rotᶜ
+export divᵛ
+export cogᵛ
+export cocurlᶜ
+export cogᶜ
+export cocurlᵛ
+export corotᵛ
+export codᶜ
+export corotᶜ
+export codᵛ 
 
-
-# export edgeMidpointLfunction
-
-end #end module 
+end 
