@@ -20,6 +20,7 @@ using FromFile
 @from "OrderAroundCell.jl" using OrderAroundCell
 @from "TopologyFunctions.jl" using TopologyFunctions
 @from "HNetwork.jl" using HNetwork
+@from "DifferentialOperators.jl" using DifferentialOperators
 
 export topologyMatrices
 export findĀ
