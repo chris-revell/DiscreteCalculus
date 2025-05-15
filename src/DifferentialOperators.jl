@@ -4,7 +4,7 @@
 #
 #  Created by Christopher Revell on 16/08/2023.
 #
-# A set of functions to derive objects that depend on system topology and spatial information 
+# Differential operators over primary and dual networks
 
 # aᵢ => Cell areas, for each cell i
 # Aⱼₖ => Incidence matrix, , for each edge j and vertex k
@@ -89,12 +89,20 @@ function curlᵛ(R, A, B)
     curlᵛ = -E*Aᵀ*𝐓
     return curlᵛ
 end 
+# function curlᵛ(R, A, B, 𝐛)
+#     E = findCellLinkTriangleAreas(R, A, B)
+#     𝐓 = findCellCentreLinks(R, A, B)
+#     tmp = [-A[j,k]*(𝐓[j]⋅𝐛[j])/E[k] for j=1:size(A,1), k=1:size(A,2)]
+#     return dropdims(sum(tmp, dims=1), dims=1)
+# end 
+# With boundary considerations, Jensen and Revell 2023 Eq 12
 function curlᵛ(R, A, B, 𝐛)
     E = findCellLinkTriangleAreas(R, A, B)
-    𝐓 = findCellCentreLinks(R, A, B)
-    tmp = [-A[j,k]*(𝐓[j]⋅𝐛[j])/E[k] for j=1:size(A,1), k=1:size(A,2)]
-    return dropdims(sum(tmp, dims=1), dims=1)
+    q = findSpokes(R, A, B)
+    tmp = [B[i,j]*A[j,k]*(q[i,k]⋅𝐛[j])/E[k] for i=1:size(B,1), j=1:size(A,1), k=1:size(A,2)]
+    return dropdims(sum(tmp, dims=(1,2)), dims=(1,2))
 end 
+
 
 # Old: {C̃URLᵛ ϕ }ⱼ = ∑ₖAⱼₖ𝐓ⱼϕₖ/Fⱼ
 # Old => new: C̃URLᵛ => -rotᵛ
@@ -105,11 +113,18 @@ function rotᵛ(R, A, B)
     rotᵛ = -𝐓*F*A
     return rotᵛ
 end 
+# function rotᵛ(R, A, B, ϕ)
+#     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+#     𝐓 = findCellCentreLinks(R, A, B)
+#     tmp = [-A[j,k].*𝐓[j].*ϕ[k]/F[j] for j=1:size(A,1), k=1:size(A,2)]
+#     return dropdims(sum(tmp, dims=2), dims=2)
+# end 
+# With boundary considerations, Jensen and Revell 2023 Eq 12
 function rotᵛ(R, A, B, ϕ)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    𝐓 = findCellCentreLinks(R, A, B)
-    tmp = [-A[j,k].*𝐓[j].*ϕ[k]/F[j] for j=1:size(A,1), k=1:size(A,2)]
-    return dropdims(sum(tmp, dims=2), dims=2)
+    q = findSpokes(R, A, B)
+    tmp = [B[i,j]*A[j,k].*q[i,k].*ϕ[k]/F[j] for i=1:size(B,1), j=1:size(A,1), k=1:size(A,2)]
+    return dropdims(sum(tmp, dims=(1,3)), dims=(1,3))
 end 
 
 # Old: {d̃ivᶜ 𝐛 }ᵢ = -∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)𝐓ⱼ⋅𝐛ⱼ/aᵢ
@@ -207,7 +222,7 @@ function cocurlᶜ(R, A, B)
                 -1.0 0.0
             ])
     ϵ = spdiagm(fill(transpose(ϵᵢ), size(B,2)))
-    divᶜᵢ = a*B*𝐭*ϵ 
+    divᶜᵢ = -a*B*𝐭*ϵ 
     return divᶜᵢ
 end
 function cocurlᶜ(R, A, B, 𝐛)
@@ -218,7 +233,7 @@ function cocurlᶜ(R, A, B, 𝐛)
                 -1.0 0.0
             ])
     ϵ = fill(ϵᵢ, size(B,1))
-    tmp = [B[i,j]*(ϵ[i]*𝐭[j])⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
+    tmp = [-B[i,j]*(ϵ[i]*𝐭[j])⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
     return dropdims(sum(tmp, dims=2), dims=2)
 end
 
@@ -264,16 +279,27 @@ function cocurlᵛ(R, A, B)
     cocurlᵛ = E*Aᵀ*𝐓*ϵ
     return cocurlᵛ
 end
+# function cocurlᵛ(R, A, B, 𝐛)
+#     E = findCellLinkTriangleAreas(R, A, B)
+#     ϵₖ = SMatrix{2, 2, Float64}([
+#                 0.0 -1.0
+#                 1.0 0.0
+#             ])
+#     ϵ = fill(ϵₖ, size(A,2))
+#     𝐓 = findCellCentreLinks(R, A, B)
+#     tmp = [A[j,k]*(ϵ[k]*𝐓[j])⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
+#     return dropdims(sum(tmp, dims=1), dims=1)
+# end
+# With boundary considerations, Jensen and Revell 2023 Eq 12
 function cocurlᵛ(R, A, B, 𝐛)
     E = findCellLinkTriangleAreas(R, A, B)
-    ϵₖ = SMatrix{2, 2, Float64}([
-                0.0 -1.0
-                1.0 0.0
+    ϵᵢ = SMatrix{2, 2, Float64}([
+                0.0 1.0
+                -1.0 0.0
             ])
-    ϵ = fill(ϵₖ, size(A,2))
-    𝐓 = findCellCentreLinks(R, A, B)
-    tmp = [A[j,k]*(ϵ[k]*𝐓[j])⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
-    return dropdims(sum(tmp, dims=1), dims=1)
+    q = findSpokes(R, A, B)
+    tmp = [B[i,j]*A[j,k].*(ϵᵢ*q[i,k])⋅𝐛[j]./E[k] for i=1:size(B,1), j=1:size(A,1), k=1:size(A,2)]
+    return dropdims(sum(tmp, dims=(1,2)), dims=(1,2))
 end
 
 # Old: {g̃radᵛ ϕ}ⱼ = ∑ₖAⱼₖϵₖ(𝐓ⱼ/Fⱼ)ϕₖ
@@ -290,15 +316,26 @@ function corotᵛ(R, A, B)
     corotᵛ = ϵ*𝐓*F*A
     return corotᵛ
 end
+# function corotᵛ(R, A, B, ϕ)
+#     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+#     ϵₖ = SMatrix{2, 2, Float64}([
+#                 0.0 -1.0
+#                 1.0 0.0
+#             ])
+#     𝐓 = findCellCentreLinks(R, A, B)
+#     tmp = [A[j,k].*ϵₖ*(𝐓[j]./F[j]).*ϕ[k] for j=1:size(A,1), k=1:size(A,2)]
+#     return dropdims(sum(tmp, dims=2), dims=2)
+# end
+# With boundary considerations, Jensen and Revell 2023 Eq 12
 function corotᵛ(R, A, B, ϕ)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    ϵₖ = SMatrix{2, 2, Float64}([
-                0.0 -1.0
-                1.0 0.0
+    ϵᵢ = SMatrix{2, 2, Float64}([
+                0.0 1.0
+                -1.0 0.0
             ])
-    𝐓 = findCellCentreLinks(R, A, B)
-    tmp = [A[j,k].*ϵₖ*(𝐓[j]./F[j]).*ϕ[k] for j=1:size(A,1), k=1:size(A,2)]
-    return dropdims(sum(tmp, dims=2), dims=2)
+    q = findSpokes(R, A, B)
+    tmp = [B[i,j]*A[j,k].*ϵᵢ*q[i,k].*ϕ[k]/F[j] for i=1:size(B,1), j=1:size(A,1), k=1:size(A,2)]
+    return dropdims(sum(tmp, dims=(1,3)), dims=(1,3))
 end
 
 # Old: {C̃URLᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵᵢ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
@@ -387,37 +424,20 @@ function codᵛ(R, A, B, 𝐛)
 end
 
 export gradᵛ
-# export gradᵛ2
 export curlᶜ
-# export curlᶜ2
-export curlᶜ3
 export gradᶜ
-# export gradᶜ2
 export curlᵛ
-# export curlᵛ2
 export rotᵛ
-# export rotᵛ2
 export divᶜ
-# export divᶜ2
 export rotᶜ
-# export rotᶜ2
 export divᵛ
-# export divᵛ2
 export cogᵛ
-# export cogᵛ2
 export cocurlᶜ
-# export cocurlᶜ2
 export cogᶜ
-# export cogᶜ2
 export cocurlᵛ
-# export cocurlᵛ2
 export corotᵛ
-# export corotᵛ2
 export codᶜ
-# export codᶜ2
 export corotᶜ
-# export corotᶜ2
 export codᵛ
-# export codᵛ2
 
 end

@@ -178,7 +178,7 @@ end
 
 function findCellLinkTriangleAreas(R, A, B)
     Eₖ = findCellLinkTriangles(R, A, B)
-    return area.(Eₖ)
+    return abs.(area.(Eₖ))
 end
 
 # Function that returns a vector of floats with length nEdges where each element corresponds to an edge and gives the area of the quadrilateral 
