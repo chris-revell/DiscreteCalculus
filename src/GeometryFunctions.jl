@@ -18,6 +18,7 @@ using SparseArrays
 using StaticArrays
 using GeometryBasics
 using FromFile
+using CircularArrays
 
 # Local modules
 @from "OrderAroundCell.jl" using OrderAroundCell
@@ -48,17 +49,6 @@ findCellCentresOfMass(R, A, B) = findC(A, B)*R./findCellEdgeCount(B)
 # Conventional variable name ???
 # = B̄t 
 findCellPerimeterLengths(R, A, B) = abs.(B)*norm.(A*R)
-
-# Function that returns a vector of floats corresponding to the areas of each cell in the network, using the GeometryBasics area() function for simplicity
-# Conventional variable name Aᵢ
-function findCellAreas(R, A, B)
-    cellAreas = Float64[]
-    for i=1:size(B,1)
-        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
-        push!(cellAreas, abs(area(Point{2,Float64}.(R[orderedVertices]))))
-    end
-    return cellAreas
-end
 
 # Function that returns a vector of floats corresponding to the areas surrounding each vertex in the network.
 # For internal vertices this area is bounded by the lines connecting adjacent edge midpoints. For peripheral vertices, 
@@ -105,33 +95,48 @@ function findCellPolygons(R, A, B)
     return cellPolygons
 end
 
+# Function that returns a vector of floats corresponding to the areas of each cell in the network, using the GeometryBasics area() function for simplicity
+# Conventional variable name Aᵢ
+function findCellAreas(R, A, B)
+    cellPolygons = findCellPolygons(R, A, B)
+    return abs.(area.(cellPolygons))
+end
+
 # Function that returns a vector of SVectors with nEdges components, where each component 
 # corresponds to the vector connecting cell centres of mass across the corresponding edge. 
 # Conventional variable name Tⱼ
-function findCellCentreLinks(R, A, B)
-    nCells = size(B, 1)
-    nEdges = size(B, 2)
-    cellCentresOfMass = findCellCentresOfMass(R, A, B)
-    edgeMidpoints = findEdgeMidpoints(R, A)
-    onesVec = ones(1, nCells)
-    boundaryEdges = abs.(onesVec * B)
-    cᵖ = boundaryEdges' .* edgeMidpoints
-    T = SVector{2,Float64}[]
-    for j = 1:nEdges
-        Tⱼ = @SVector zeros(2)
-        for i = 1:nCells
-            Tⱼ = Tⱼ + B[i, j] * (cellCentresOfMass[i] .- cᵖ[j])
-        end
-        push!(T, Tⱼ)
-    end
-    return T
+# function findCellLinks(R, A, B)
+#     nCells = size(B, 1)
+#     nEdges = size(B, 2)
+#     cellCentresOfMass = findCellCentresOfMass(R, A, B)
+#     edgeMidpoints = findEdgeMidpoints(R, A)
+#     boundaryEdges = findBoundaryEdges(B)
+#     cᵖ = boundaryEdges' .* edgeMidpoints
+#     T = SVector{2,Float64}[]
+#     for j = 1:nEdges
+#         Tⱼ = @SVector zeros(2)
+#         for i = 1:nCells
+#             Tⱼ = Tⱼ + B[i, j] * (cellCentresOfMass[i] .- cᵖ[j])
+#         end
+#         push!(T, Tⱼ)
+#     end
+#     return T
+# end
+
+# 𝐓ⱼ = ∑ᵢBᵢⱼ(𝐑ᵢ-𝐜ᵖⱼ), cᵖⱼ = ∑ᵢBᵢⱼ𝐜ⱼ
+function findCellLinks(R, A, B)
+    B̄ = abs.(B)
+    𝐑ᵢ = findCellCentresOfMass(R, A, B)
+    𝐜ⱼ = findEdgeMidpoints(R, A)
+    𝐜ᵖ = dropdims(sum([B̄[i,j].*𝐜ⱼ[j] for i=1:size(B,1), j=1:size(B,2)], dims=1), dims=1)
+    𝐓ⱼ = dropdims(sum([B[i,j].*(𝐑ᵢ[i] .- 𝐜ᵖ[j]) for i=1:size(B,1), j=1:size(B,2)], dims=1), dims=1)
+    return 𝐓ⱼ
 end
 
-function findCellCentreLinkLengths(R, A, B)
-    T = findCellCentreLinks(R, A, B)
+function findCellLinkLengths(R, A, B)
+    T = findCellLinks(R, A, B)
     return norm.(T)
 end
-
 
 # Function that returns a vector with length equal to the number of vertices, 
 # where each components is a vector of Point objects forming the triangle formed around the corresonding vertex 
@@ -139,37 +144,23 @@ end
 # a polygon around the vertex from adjacent cell centroids and peripheral edge midpoints.
 # Conventional variable name Eₖ
 function findCellLinkTriangles(R, A, B)
-    nCells = size(B, 1)
-    nVerts = size(A, 2)
-    Aᵀ = Transpose(A)
-    Āᵀ = Transpose(abs.(A))
-    C = abs.(B) * abs.(A) .÷ 2
-    boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
-    cellCentresOfMass = findCellCentresOfMass(R, A, B)
-    edgeMidpoints = findEdgeMidpoints(R, A)
-    onesVec = ones(Int64, 1, nCells)
+    boundaryVertices = findBoundaryVertices(A, B)
+    boundaryEdges = findBoundaryEdges(B)
+    C = findC(A, B)
+    𝐑ᵢ = findCellCentresOfMass(R, A, B)
+    𝐜ⱼ = findEdgeMidpoints(R, A)
     linkTriangles = Vector{Point{2,Float64}}[]
-    boundaryEdges = abs.(onesVec * B)
-    for k = 1:nVerts
+    for k = 1:size(A,2)
         if boundaryVertices[k] == 0
             # If this vertex is not at the system boundary, link triangle is easily formed from the positions of surrounding cells
             # Note that there is no need to work out an order for these cells since any ordering of triangle vertices has a valid orientation
-            vertexCells = findall(x -> x != 0, C[:, k])
-            push!(linkTriangles, Point{2,Float64}.(cellCentresOfMass[vertexCells]))
+            k_is = findall(x -> x != 0, C[:, k])
+            push!(linkTriangles, Point{2,Float64}.(𝐑ᵢ[k_is]))
         else
             # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
-            vertexCells = findall(x -> x != 0, C[:, k])
-            vertexEdges = findall(x -> x != 0, A[:, k])
-            boundaryVertexEdges = intersect(vertexEdges, findall(x -> x != 0, boundaryEdges[1, :]))
-            kiteVertices = [edgeMidpoints[boundaryVertexEdges]; cellCentresOfMass[vertexCells]]
-            push!(kiteVertices, R[k])
-            com = sum(kiteVertices) ./ length(kiteVertices)
-            angles = Float64[]
-            for p = 1:length(kiteVertices)
-                angle = atan((kiteVertices[p] .- com)...)
-                push!(angles, angle)
-            end
-            kiteVertices .= kiteVertices[sortperm(angles)]
+            k_js = [j for j in findall(x -> x != 0, A[:, k]) if boundaryEdges[j]==1]
+            k_is = [findall(x->x!=0, B[:, j])[1] for j in k_js]
+            kiteVertices = [R[k], 𝐜ⱼ[k_js[1]], 𝐑ᵢ[k_is]..., 𝐜ⱼ[k_js[2]]]
             push!(linkTriangles, Point{2,Float64}.(kiteVertices))
         end
     end
@@ -203,45 +194,7 @@ end
 
 function findEdgeQuadrilateralAreas(R, A, B)
     edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
-    return area.(edgeQuadrilaterals)
-end
-
-function findEdgeMidpointPolygons(R, A, B)
-    nCells = size(B, 1)
-    edgeMidpoints = findEdgeMidpoints(R, A)
-    edgeMidpointPolygons = Vector{Point{2,Float64}}[]
-    for i = 1:nCells
-        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
-        push!(edgeMidpointPolygons, Point{2,Float64}.(edgeMidpoints[orderedEdges]))
-    end
-    return edgeMidpointPolygons
-end
-
-function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
-    nEdges = size(B, 2)
-    cellCentresOfMass = findCellCentresOfMass(R, A, B)
-    edgeTangents = findEdgeTangents(R, A)
-    edgeMidpoints = findEdgeMidpoints(R, A)
-    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
-    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    T = findCellCentreLinks(R, A, B)
-    # Rotation matrix around vertices is the opposite of that around cells
-    ϵₖ = -1 * ϵᵢ
-    onesVec = ones(1, nCells)
-    boundaryEdges = abs.(onesVec * B)
-    cᵖ = boundaryEdges' .* edgeMidpoints
-    intersections = SVector{2,Float64}[]
-    for j = 1:nEdges
-        if boundaryEdges[j] == 0
-            k = findall(x -> x < 0, A[j, :])[1]
-            i = findall(x -> x < 0, B[:, j])[1]
-            mⱼ = R[k] .+ ((cellCentresOfMass[i] .- R[k]) ⋅ (ϵₖ * T[j])) / (2.0 * trapeziumAreas[j]) .* edgeTangents[j]
-            push!(intersections, mⱼ)
-        else
-            push!(intersections, cᵖ[j])
-        end
-    end
-    return intersections
+    return abs.(area.(edgeQuadrilaterals))
 end
 
 function findSpokes(R, A, B)
@@ -256,6 +209,21 @@ function findSpokes(R, A, B)
         end
     end
     return q
+end
+
+
+
+
+
+function findEdgeMidpointPolygons(R, A, B)
+    nCells = size(B, 1)
+    edgeMidpoints = findEdgeMidpoints(R, A)
+    edgeMidpointPolygons = Vector{Point{2,Float64}}[]
+    for i = 1:nCells
+        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
+        push!(edgeMidpointPolygons, Point{2,Float64}.(edgeMidpoints[orderedEdges]))
+    end
+    return edgeMidpointPolygons
 end
 
 # sᵢₖ = ∑ⱼ(1/2)BᵢⱼtⱼĀⱼₖ
@@ -278,25 +246,53 @@ function findEdgeMidpointLinks(R, A, B)
     return edgeMidpointLinks
 end
 
-export findCellCentresOfMass
-export findEdgeTangents
-export findEdgeLengths
-export findEdgeLengths
-export findEdgeMidpoints
-export findCellPerimeterLengths
-export findCellAreas
-export findVertexAreas
-export findCellPolygons
-export findCellCentreLinks
-export findCellCentreLinkLengths
-export findCellLinkTriangles
-export findCellLinkTriangleAreas
-export findEdgeQuadrilaterals
-export findEdgeQuadrilateralAreas
+function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
+    nEdges = size(B, 2)
+    cellCentresOfMass = findCellCentresOfMass(R, A, B)
+    edgeTangents = findEdgeTangents(R, A)
+    edgeMidpoints = findEdgeMidpoints(R, A)
+    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
+    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
+    T = findCellLinks(R, A, B)
+    # Rotation matrix around vertices is the opposite of that around cells
+    ϵₖ = -1 * ϵᵢ
+    onesVec = ones(1, nCells)
+    boundaryEdges = abs.(onesVec * B)
+    cᵖ = boundaryEdges' .* edgeMidpoints
+    intersections = SVector{2,Float64}[]
+    for j = 1:nEdges
+        if boundaryEdges[j] == 0
+            k = findall(x -> x < 0, A[j, :])[1]
+            i = findall(x -> x < 0, B[:, j])[1]
+            mⱼ = R[k] .+ ((cellCentresOfMass[i] .- R[k]) ⋅ (ϵₖ * T[j])) / (2.0 * trapeziumAreas[j]) .* edgeTangents[j]
+            push!(intersections, mⱼ)
+        else
+            push!(intersections, cᵖ[j])
+        end
+    end
+    return intersections
+end
+
+
 export findEdgeMidpointPolygons
 export findEdgeLinkMidpoints
 export findSpokes
 export findEdgeMidpointLinks
+export findCellCentresOfMass
+export findEdgeTangents
+export findEdgeMidpoints
+export findCellPolygons
+export findCellLinks
+export findCellLinkLengths
+export findCellPerimeterLengths
+export findCellAreas
+export findEdgeLengths
+export findVertexAreas
+export findCellLinkTriangles
+export findCellLinkTriangleAreas
+export findEdgeQuadrilaterals
+export findEdgeQuadrilateralAreas
+
 
 end #end module 
 

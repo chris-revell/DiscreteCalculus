@@ -45,8 +45,8 @@ export findCellPerimeterLengths
 export findCellAreas
 export findVertexAreas
 export findCellPolygons
-export findCellCentreLinks
-export findCellCentreLinkLengths
+export findCellLinks
+export findCellLinkLengths
 export findCellLinkTriangles
 export findCellLinkTriangleAreas
 export findEdgeQuadrilaterals

@@ -56,7 +56,7 @@ function hNetwork(R, A, B, F)
     B̄ = abs.(B)
 
     # Ensure we don't start with a boundary cell
-    startCell = rand(collect(1:nCells)[Not(boundaryCells)])
+    startCell = rand(collect(1:nCells))#[Not(boundaryCells)])
     traversedCells = Int64[]
     traversedEdges = Int64[]
     cellNeighbourMatrix = B*transpose(B)

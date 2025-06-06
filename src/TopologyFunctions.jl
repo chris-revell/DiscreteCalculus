@@ -61,7 +61,7 @@ findAᵀ(A) = Transpose(A)
 findĀᵀ(A) = abs.(Transpose(A))
 findBᵀ(B) = Transpose(B)
 findB̄ᵀ(B) = abs.(Transpose(B))
-findCellEdgeCount(B) = sum.(eachrow(abs.(B)))
+findCellEdgeCount(B) = sum.(eachrow(abs.(B))) # Zᵢ
 findBoundaryVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
 findBoundaryEdges(B) = abs.([sum(x) for x in eachcol(B)])
 

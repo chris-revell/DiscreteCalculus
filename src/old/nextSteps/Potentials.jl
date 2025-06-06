@@ -20,7 +20,7 @@ using GeometryBasics
 @from "Laplacians.jl" using Laplacians
 
 function psicPotential(nCells, nEdges, nVerts, R, A, B, C, F, boundaryVertices, cellCentresOfMass, cellAreas, edgeMidpoints, edgeTangents, ϵᵢ)
-    T = findCellCentreLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
+    T = findCellLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
     edgeQuadrilaterals = findEdgeQuadrilaterals(nEdges, R, A, B, cellCentresOfMass)
     trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     linkTriangles = findCellLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
@@ -45,7 +45,7 @@ function psicPotential(nCells, nEdges, nVerts, R, A, B, C, F, boundaryVertices, 
 end
 
 function psivPotential(nCells, nEdges, nVerts, R, A, Aᵀ, B, C, F, ϵᵢ, boundaryVertices, cellCentresOfMass, edgeMidpoints)
-    T = findCellCentreLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
+    T = findCellLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
     edgeQuadrilaterals = findEdgeQuadrilaterals(nEdges, R, A, B, cellCentresOfMass)
     trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     linkTriangles = findCellLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
@@ -71,7 +71,7 @@ function psivPotential(nCells, nEdges, nVerts, R, A, Aᵀ, B, C, F, ϵᵢ, bound
 end
 
 function capitalPsivPotential(nCells, nEdges, nVerts, R, A, B, C, F, ϵᵢ, boundaryVertices, cellCentresOfMass, edgeMidpoints)
-    T = findCellCentreLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
+    T = findCellLinks(nCells, nEdges, B, cellCentresOfMass, edgeMidpoints)
     edgeQuadrilaterals = findEdgeQuadrilaterals(nEdges, R, A, B, cellCentresOfMass)
     trapeziumAreas = abs.(area.(edgeQuadrilaterals))
     linkTriangles = findCellLinkTriangles(nCells, nVerts, R, A, B, C, boundaryVertices, cellCentresOfMass, edgeMidpoints)
