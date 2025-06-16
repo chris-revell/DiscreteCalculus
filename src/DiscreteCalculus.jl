@@ -69,6 +69,9 @@ export topologicalLf
 export topologicalLc
 export topologicalLv
 export topologicalLt
+export edgeLaplacianPrimal
+export edgeLaplacianDual
+
 export edgeMidpointLDirichlet
 export edgeMidpointLNeumann
 export scalarEdgeL

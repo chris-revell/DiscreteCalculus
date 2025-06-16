@@ -30,7 +30,7 @@ function geometricLf(R, A, B)
     onesVec = ones(1, nCells)
     boundaryEdges = abs.(onesVec * B)
     H = Diagonal(cellAreas)
-    boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
+    boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal edges, =0 for boundary edges
     diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths .^ 2)./(2.0 .* trapeziumAreas)))[:, 1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
     Tₑ = Diagonal(diagonalComponent)
     invH = inv(H)
@@ -128,6 +128,59 @@ function topologicalLt(A, B)
     return Lₜ
 end
 
+# function edgeLaplacianPrimal(R, A, B)
+#     aᵢ = findCellAreas(R, A, B)
+#     Eⱼ = findCellLinkTriangleAreas(R, A, B)
+#     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+#     tⱼ = findEdgeLengths(R, A)
+#     Aᵀ = transpose(A)
+#     Bᵀ = transpose(B)
+#     H⁻¹ = spdiagm(1.0./aᵢ)
+#     E⁻¹ = spdiagm(1.0./Eⱼ)
+#     Tₑ = spdiagm((tⱼ.^2)./Fⱼ)
+#     Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ.^2))
+#     Lprimal = A*E⁻¹*Aᵀ*Tₑ⁻¹ + Tₑ*Bᵀ*H⁻¹*B
+#     dropzeros!(Lprimal)
+#     return Lprimal
+# end
+
+function edgeLaplacianPrimal(R, A, B)
+    aᵢ = findCellAreas(R, A, B)
+    Eⱼ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    tⱼ = findEdgeLengths(R, A)
+    Aᵀ = transpose(A)
+    Bᵀ = transpose(B)
+    H⁻¹ = spdiagm(1.0./aᵢ)
+    E⁻¹ = spdiagm(1.0./Eⱼ)
+    Tₑ = spdiagm((tⱼ.^2)./Fⱼ)
+    Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ.^2))
+
+    # boundaryEdgesFactor = abs.(findBoundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
+    # diagonalComponent = boundaryEdgesFactor'
+    # Tₑ = Diagonal(diagonalComponent)
+
+
+    Lprimal = A*E⁻¹*Aᵀ*Tₑ⁻¹ + Tₑ*Bᵀ*H⁻¹*B
+    dropzeros!(Lprimal)
+    return Lprimal
+end
+   
+function edgeLaplacianDual(R, A, B)
+    aᵢ = findCellAreas(R, A, B)
+    Eⱼ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    Tⱼ = findCellLinkLengths(R, A, B)
+    Aᵀ = transpose(A)
+    Bᵀ = transpose(B)
+    H⁻¹ = spdiagm(1.0./aᵢ)
+    E⁻¹ = spdiagm(1.0./Eⱼ)
+    Tₗ = spdiagm((Tⱼ.^2)./Fⱼ)
+    Tₗ⁻¹ = spdiagm(Fⱼ./(Tⱼ.^2))
+    Ldual = Bᵀ*H⁻¹*B*Tₗ⁻¹ + Tₗ*A*E⁻¹*Aᵀ
+    dropzeros!(Ldual)
+    return Ldual
+end
 
 function edgeMidpointLDirichlet(R, A, B)
     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
@@ -149,7 +202,6 @@ function edgeMidpointLDirichlet(R, A, B)
     dropzeros!(L)
     return L
 end
-
 
 function edgeMidpointLNeumann(R, A, B)
     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
@@ -266,6 +318,9 @@ export topologicalLf
 export topologicalLc
 export topologicalLv
 export topologicalLt
+export edgeLaplacianPrimal
+export edgeLaplacianDual
+
 export edgeMidpointLDirichlet
 export edgeMidpointLNeumann
 export scalarEdgeL
