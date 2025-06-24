@@ -38,14 +38,14 @@ function hAroundCell!(ii, B, h, ϵ, F, currentNeighbourShell, traversedCells, tr
 end
 
 function hNetwork(R, A, B, F)
-    nCells = size(B,1)
-    nEdges = size(B,2)
-    nVerts = size(A,2)
+    I = size(B,1)
+    J = size(B,2)
+    K = size(A,2)
     boundaryEdges = findBoundaryEdges(B)
     boundaryCells = findnz(B[:, boundaryEdges.==1])[1]
-    cellVertexOrders  = fill(CircularVector(Int64[]), nCells)
-    cellEdgeOrders    = fill(CircularVector(Int64[]), nCells)
-    for i = 1:length(cellVertexOrders)
+    cellVertexOrders  = fill(CircularVector(Int64[]), I)
+    cellEdgeOrders    = fill(CircularVector(Int64[]), I)
+    for i = 1:I
         cellVertexOrders[i], cellEdgeOrders[i] = orderAroundCell(A, B, i)
     end
     ϵ = SMatrix{2, 2, Float64}([
@@ -56,21 +56,28 @@ function hNetwork(R, A, B, F)
     B̄ = abs.(B)
 
     # Ensure we don't start with a boundary cell
-    startCell = rand(collect(1:nCells))#[Not(boundaryCells)])
+    startCell = rand(collect(1:I)[Not(boundaryCells)])
+    # startCell = 1 
     traversedCells = Int64[]
     traversedEdges = Int64[]
     cellNeighbourMatrix = B*transpose(B)
-    h = fill(SVector{2, Float64}(zeros(2)), nEdges)
+    h = fill(SVector{2, Float64}(zeros(2)), J)
 
     hAroundCell!(startCell, B, h, ϵ, F, Int64[], traversedCells, traversedEdges, cellEdgeOrders, cellVertexOrders)
     push!(traversedCells, startCell)
-    while length(traversedCells) < nCells
+    while length(traversedCells) < I
         currentNeighbourShell = setdiff(findnz(cellNeighbourMatrix[:, traversedCells])[1], traversedCells)
         for ii in currentNeighbourShell
             hAroundCell!(ii, B, h, ϵ, F, currentNeighbourShell, traversedCells, traversedEdges, cellEdgeOrders, cellVertexOrders)
             push!(traversedCells, ii)
         end
     end
+
+    for j=2:J
+        h[j] = h[j] - h[1]
+    end
+    h[1] = @SVector zeros(2)
+
     return h
 end
 
