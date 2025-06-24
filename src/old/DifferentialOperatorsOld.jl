@@ -61,19 +61,19 @@ function gradᵛ(R, A, ϕ)
 end
 
 # Old: {curlᵛ ϕ}ⱼ = ∑ₖϵₖ(𝐭ⱼ/tⱼ²)Aⱼₖϕₖ
-# Old => new: curlᵛ => -cogᵛ
-# New: {cogᵛ ϕ}ⱼ = -∑ₖϵₖ(𝐭ⱼ/tⱼ²)Aⱼₖϕₖ
-function cogᵛ(R, A, B)
+# Old => new: curlᵛ => -cogradᵛ
+# New: {cogradᵛ ϕ}ⱼ = -∑ₖϵₖ(𝐭ⱼ/tⱼ²)Aⱼₖϕₖ
+function cogradᵛ(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
                 0.0 -1.0
                 1.0 0.0
             ])
     𝐭 = findEdgeTangents(R, A)
     t = findEdgeLengths(R, A)
-    cogᵛ = [-ϵₖ*(𝐭[j]./(t[j]^2)).*A[j,k] for j=1:size(A,1), k=1:size(A,2)]
-    return cogᵛ
+    cogradᵛ = [-ϵₖ*(𝐭[j]./(t[j]^2)).*A[j,k] for j=1:size(A,1), k=1:size(A,2)]
+    return cogradᵛ
 end
-function cogᵛ(R, A, B, ϕ)
+function cogradᵛ(R, A, B, ϕ)
     ϵₖ = SMatrix{2, 2, Float64}([
                 0.0 -1.0
                 1.0 0.0
@@ -143,19 +143,19 @@ function gradᶜ(R, A, B, f)
 end
 
 # Old: {CURLᶜ f}ⱼ = ∑ᵢϵᵢ(𝐓ⱼ/Tⱼ²)Bᵢⱼfᵢ
-# Old => new: CURLᶜ => -cogᶜ 
-# New: {cogᶜ f}ⱼ = -∑ᵢϵᵢ(𝐓ⱼ/Tⱼ²)Bᵢⱼfᵢ
-function cogᶜ(R, A, B)
+# Old => new: CURLᶜ => -cogradᶜ 
+# New: {cogradᶜ f}ⱼ = -∑ᵢϵᵢ(𝐓ⱼ/Tⱼ²)Bᵢⱼfᵢ
+function cogradᶜ(R, A, B)
     𝐓 = findCellLinks(R, A, B)
     T = findCellLinkLengths(R, A, B)
     ϵᵢ = SMatrix{2, 2, Float64}([
                 0.0 1.0
                 -1.0 0.0
             ])
-    cogᶜ = Transpose([-ϵᵢ*(𝐓[j]./(T[j]^2)).*B[i,j] for i=1:size(B,1), j=1:size(B,2)])
-    return cogᶜ
+    cogradᶜ = Transpose([-ϵᵢ*(𝐓[j]./(T[j]^2)).*B[i,j] for i=1:size(B,1), j=1:size(B,2)])
+    return cogradᶜ
 end
-function cogᶜ(R, A, B, f)
+function cogradᶜ(R, A, B, f)
     𝐓 = findCellLinks(R, A, B)
     T = findCellLinkLengths(R, A, B)
     ϵᵢ = SMatrix{2, 2, Float64}([
@@ -262,9 +262,9 @@ function divᵛ(R, A, B, 𝐛)
 end
 
 # Old: {c̃urlᵛ 𝐛}ₖ = ∑ⱼAⱼₖ(Fⱼ/tⱼ²)(ϵₖ𝐭ⱼ)⋅𝐛ⱼ/Eₖ
-# Old => new: c̃urlᵛ => codᵛ 
-# New: {codᵛ 𝐛}ₖ = ∑ⱼAⱼₖ(Fⱼ/tⱼ²)(ϵₖ𝐭ⱼ)⋅𝐛ⱼ/Eₖ
-function codᵛ(R, A, B)
+# Old => new: c̃urlᵛ => codivᵛ 
+# New: {codivᵛ 𝐛}ₖ = ∑ⱼAⱼₖ(Fⱼ/tⱼ²)(ϵₖ𝐭ⱼ)⋅𝐛ⱼ/Eₖ
+function codivᵛ(R, A, B)
     E = spdiagm(1.0./findCellLinkTriangleAreas(R, A, B))
     F = spdiagm(2.0.*findEdgeQuadrilateralAreas(R, A, B))
     ϵₖ = SMatrix{2, 2, Float64}([
@@ -275,10 +275,10 @@ function codᵛ(R, A, B)
     𝐭 = spdiagm(Transpose.(findEdgeTangents(R, A)))
     t = spdiagm(1.0./findEdgeLengths(R, A))
     Aᵀ = Transpose(A)
-    codᵛ = E*Aᵀ*F*t*t*𝐭*ϵ
-    return codᵛ
+    codivᵛ = E*Aᵀ*F*t*t*𝐭*ϵ
+    return codivᵛ
 end
-function codᵛ(R, A, B, 𝐛)
+function codivᵛ(R, A, B, 𝐛)
     E = findCellLinkTriangleAreas(R, A, B)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
@@ -356,9 +356,9 @@ function divᶜ(R, A, B, 𝐛)
 end 
 
 # Old: {C̃URLᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵᵢ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
-# Old => new: C̃URLᶜ => codᶜ
-# New: {codᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵᵢ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
-function codᶜ(R, A, B)
+# Old => new: C̃URLᶜ => codivᶜ
+# New: {codivᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵᵢ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
+function codivᶜ(R, A, B)
     F = spdiagm(2.0.*findEdgeQuadrilateralAreas(R, A, B))
     ϵᵢ = SMatrix{2, 2, Float64}([
                 0.0 1.0
@@ -368,10 +368,10 @@ function codᶜ(R, A, B)
     𝐓 = spdiagm(Transpose.(findCellLinks(R, A, B)))
     T = spdiagm(1.0./findCellLinkLengths(R, A, B))
     a = spdiagm(1.0./findCellAreas(R, A, B))
-    codᶜ = a*B*F*T*T*𝐓*ϵ
-    return codᶜ
+    codivᶜ = a*B*F*T*T*𝐓*ϵ
+    return codivᶜ
 end
-function codᶜ(R, A, B, 𝐛)
+function codivᶜ(R, A, B, 𝐛)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     ϵᵢ = SMatrix{2, 2, Float64}([
         0.0 1.0
@@ -447,19 +447,19 @@ function curlᵛ(R, A, B, 𝐛)
 end 
 
 export gradᵛ
-export cogᵛ
+export cogradᵛ
 export corotᶜ
 export rotᶜ
 export gradᶜ
-export cogᶜ
+export cogradᶜ
 export corotᵛ
 export rotᵛ
 export divᵛ
-export codᵛ
+export codivᵛ
 export cocurlᶜ
 export curlᶜ
 export divᶜ
-export codᶜ
+export codivᶜ
 export cocurlᵛ
 export curlᵛ
 
@@ -534,9 +534,9 @@ end
 # end
 
 # # Old: {curlᵛ ϕ}ⱼ = ∑ₖϵₖ(𝐭ⱼ/tⱼ²)Aⱼₖϕₖ
-# # Old => new: curlᵛ => -cogᵛ
-# # New: {cogᵛ ϕ}ⱼ = -∑ₖϵₖ(𝐭ⱼ/tⱼ²)Aⱼₖϕₖ
-# function cogᵛ(R, A, B)
+# # Old => new: curlᵛ => -cogradᵛ
+# # New: {cogradᵛ ϕ}ⱼ = -∑ₖϵₖ(𝐭ⱼ/tⱼ²)Aⱼₖϕₖ
+# function cogradᵛ(R, A, B)
 #     ϵₖ = SMatrix{2, 2, Float64}([
 #                 0.0 -1.0
 #                 1.0 0.0
@@ -544,10 +544,10 @@ end
 #     ϵ = spdiagm(fill(ϵₖ, size(A,1))) # Assume that ϵₖ does not vary with k and therefore we can fill this matrix with size JxJ
 #     𝐭 = spdiagm(findEdgeTangents(R, A))
 #     t = spdiagm(1.0./findEdgeLengths(R, A))
-#     cogᵛ = -ϵ*𝐭*t*t*A
-#     return cogᵛ
+#     cogradᵛ = -ϵ*𝐭*t*t*A
+#     return cogradᵛ
 # end
-# function cogᵛ(R, A, B, ϕ)
+# function cogradᵛ(R, A, B, ϕ)
 #     ϵₖ = SMatrix{2, 2, Float64}([
 #                 0.0 -1.0
 #                 1.0 0.0
@@ -622,9 +622,9 @@ end
 # end
 
 # # Old: {CURLᶜ f}ⱼ = ∑ᵢϵᵢ(𝐓ⱼ/Tⱼ²)Bᵢⱼfᵢ
-# # Old => new: CURLᶜ => -cogᶜ 
-# # New: {cogᶜ f}ⱼ = -∑ᵢϵᵢ(𝐓ⱼ/Tⱼ²)Bᵢⱼfᵢ
-# function cogᶜ(R, A, B)
+# # Old => new: CURLᶜ => -cogradᶜ 
+# # New: {cogradᶜ f}ⱼ = -∑ᵢϵᵢ(𝐓ⱼ/Tⱼ²)Bᵢⱼfᵢ
+# function cogradᶜ(R, A, B)
 #     𝐓 = spdiagm(findCellLinks(R, A, B))
 #     T = spdiagm(1.0./findCellLinkLengths(R, A, B))
 #     ϵᵢ = SMatrix{2, 2, Float64}([
@@ -633,10 +633,10 @@ end
 #             ])
 #     ϵ = spdiagm(fill(ϵᵢ, size(B,2)))
 #     Bᵀ = Transpose(B)
-#     cogᶜ = -ϵ*𝐓*T*T*Bᵀ
-#     return cogᶜ
+#     cogradᶜ = -ϵ*𝐓*T*T*Bᵀ
+#     return cogradᶜ
 # end
-# function cogᶜ(R, A, B, f)
+# function cogradᶜ(R, A, B, f)
 #     𝐓 = findCellLinks(R, A, B)
 #     T = findCellLinkLengths(R, A, B)
 #     ϵᵢ = SMatrix{2, 2, Float64}([
@@ -730,9 +730,9 @@ end
 # end
 
 # # Old: {c̃urlᵛ 𝐛}ₖ = ∑ⱼAⱼₖ(Fⱼ/tⱼ²)(ϵₖ𝐭ⱼ)⋅𝐛ⱼ/Eₖ
-# # Old => new: c̃urlᵛ => codᵛ 
-# # New: {codᵛ 𝐛}ₖ = ∑ⱼAⱼₖ(Fⱼ/tⱼ²)(ϵₖ𝐭ⱼ)⋅𝐛ⱼ/Eₖ
-# function codᵛ(R, A, B)
+# # Old => new: c̃urlᵛ => codivᵛ 
+# # New: {codivᵛ 𝐛}ₖ = ∑ⱼAⱼₖ(Fⱼ/tⱼ²)(ϵₖ𝐭ⱼ)⋅𝐛ⱼ/Eₖ
+# function codivᵛ(R, A, B)
 #     E = spdiagm(1.0./findCellLinkTriangleAreas(R, A, B))
 #     F = spdiagm(2.0.*findEdgeQuadrilateralAreas(R, A, B))
 #     ϵₖ = SMatrix{2, 2, Float64}([
@@ -743,10 +743,10 @@ end
 #     𝐭 = spdiagm(Transpose.(findEdgeTangents(R, A)))
 #     t = spdiagm(1.0./findEdgeLengths(R, A))
 #     Aᵀ = Transpose(A)
-#     codᵛ = E*Aᵀ*F*t*t*𝐭*ϵ
-#     return codᵛ
+#     codivᵛ = E*Aᵀ*F*t*t*𝐭*ϵ
+#     return codivᵛ
 # end
-# function codᵛ(R, A, B, 𝐛)
+# function codivᵛ(R, A, B, 𝐛)
 #     E = findCellLinkTriangleAreas(R, A, B)
 #     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
 #     ϵₖ = SMatrix{2, 2, Float64}([
@@ -824,9 +824,9 @@ end
 # end 
 
 # # Old: {C̃URLᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵᵢ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
-# # Old => new: C̃URLᶜ => codᶜ
-# # New: {codᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵᵢ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
-# function codᶜ(R, A, B)
+# # Old => new: C̃URLᶜ => codivᶜ
+# # New: {codivᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵᵢ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
+# function codivᶜ(R, A, B)
 #     F = spdiagm(2.0.*findEdgeQuadrilateralAreas(R, A, B))
 #     ϵᵢ = SMatrix{2, 2, Float64}([
 #                 0.0 1.0
@@ -836,10 +836,10 @@ end
 #     𝐓 = spdiagm(Transpose.(findCellLinks(R, A, B)))
 #     T = spdiagm(1.0./findCellLinkLengths(R, A, B))
 #     a = spdiagm(1.0./findCellAreas(R, A, B))
-#     codᶜ = a*B*F*T*T*𝐓*ϵ
-#     return codᶜ
+#     codivᶜ = a*B*F*T*T*𝐓*ϵ
+#     return codivᶜ
 # end
-# function codᶜ(R, A, B, 𝐛)
+# function codivᶜ(R, A, B, 𝐛)
 #     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
 #     ϵᵢ = SMatrix{2, 2, Float64}([
 #         0.0 1.0
@@ -915,19 +915,19 @@ end
 # end 
 
 # export gradᵛ
-# export cogᵛ
+# export cogradᵛ
 # export corotᶜ
 # export rotᶜ
 # export gradᶜ
-# export cogᶜ
+# export cogradᶜ
 # export corotᵛ
 # export rotᵛ
 # export divᵛ
-# export codᵛ
+# export codivᵛ
 # export cocurlᶜ
 # export curlᶜ
 # export divᶜ
-# export codᶜ
+# export codivᶜ
 # export cocurlᵛ
 # export curlᵛ
 
