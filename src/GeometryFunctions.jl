@@ -133,6 +133,17 @@ function findCellLinks(R, A, B)
     return 𝐓ⱼ
 end
 
+function findCellLinkMidpoints(R, A, B)
+    𝐓ⱼ = findCellLinks(R, A, B)
+    𝐑ᵢ = findCellCentresOfMass(R, A, B)
+    𝐂ⱼ = []
+    for j=1:size(B,2)
+        i = findall(x->x!=0, B[:,j])[1]
+        push!(𝐂ⱼ, 𝐑ᵢ[i].-0.5.*B[i,j].*𝐓ⱼ[j])
+    end
+    return 𝐂ⱼ
+end
+
 function findCellLinkLengths(R, A, B)
     T = findCellLinks(R, A, B)
     return norm.(T)
@@ -283,6 +294,7 @@ export findEdgeTangents
 export findEdgeMidpoints
 export findCellPolygons
 export findCellLinks
+export findCellLinkMidpoints
 export findCellLinkLengths
 export findCellPerimeterLengths
 export findCellAreas
