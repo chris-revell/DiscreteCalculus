@@ -46,6 +46,7 @@ export findCellAreas
 export findVertexAreas
 export findCellPolygons
 export findCellLinks
+export findCellLinkMidpoints
 export findCellLinkLengths
 export findCellLinkTriangles
 export findCellLinkTriangleAreas
@@ -78,20 +79,24 @@ export scalarEdgeL
 export uniformCellTensionL
 
 export gradᵛ
-export curlᶜ
-export gradᶜ
-export curlᵛ
-export rotᵛ
-export divᶜ
-export rotᶜ
-export divᵛ
-export cogᵛ
-export cocurlᶜ
-export cogᶜ
-export cocurlᵛ
-export corotᵛ
-export codᶜ
+export cogradᵛ
 export corotᶜ
-export codᵛ 
+export rotᶜ
+export gradᶜ
+export cogradᶜ
+export corotᵛ
+export corotᵛboundary
+export rotᵛ
+export rotᵛboundary
+export divᵛ
+export codivᵛ
+export cocurlᶜ
+export curlᶜ
+export divᶜ
+export codivᶜ
+export cocurlᵛ
+export cocurlᵛboundary
+export curlᵛ
+export curlᵛboundary
 
 end 
