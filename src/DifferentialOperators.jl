@@ -61,32 +61,6 @@
 # 𝐛 some vector field over edges j 
 # f some scalar field over cells i 
 
-
-# Divergence operators 
-#               Primal     Dual
-# Cells:        cocurlᶜ     divᶜ
-# Vertices:     divᵛ        cocurlᵛ
-# Curl operators 
-#               Primary     Dual
-# Cells:        curlᶜ       codivᶜ
-# Vertices:     codivᵛ      curlᵛ
-
-
-# Gradient operators 
-#               Primal      Dual 
-# Cells                     gradᶜ
-#                           cogradᶜ
-# Vertices      gradᵛ
-#               cogradᵛ
-# Curl operators 
-#               Primal      Dual
-# Cells         corotᶜ
-#               rotᶜ
-# Vertices                  corotᵛ
-#                           rotᵛ
-
-
-
 module DifferentialOperators
 
 using SparseArrays
@@ -200,11 +174,6 @@ function curlᵛboundary(R, A, B, 𝐛)
     return dropdims(sum(tmp, dims=(1,2)), dims=(1,2))
 end 
 
-
-
-
-
-
 # {gradᶜ f }ⱼ = ∑ᵢBᵢⱼ(𝐓ⱼ/Tⱼ²)fᵢ
 function gradᶜ(R, A, B, f)
     𝐓 = findCellLinks(R, A, B)
@@ -295,7 +264,7 @@ function rotᵛ(R, A, B, ϕ)
     𝐓 = findCellLinks(R, A, B)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     tmp = [-A[j,k].*𝐓[j].*ϕ[k]/F[j] for j=1:size(A,1), k=1:size(A,2)]
-    return dropdims(sum(tmp, dims=(1,3)), dims=(1,3))
+    return dropdims(sum(tmp, dims=2), dims=2)
 end 
 # With boundary considerations (Jensen and Revell 2023 Eq 12): {rotᵛ ϕ}ⱼ = ∑ᵢⱼₖBᵢⱼAⱼₖ𝐪ᵢₖϕₖ/Fⱼ
 function rotᵛboundary(R, A, B, ϕ)
