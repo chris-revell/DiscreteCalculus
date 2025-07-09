@@ -85,18 +85,22 @@ export rotᶜ
 export gradᶜ
 export cogradᶜ
 export corotᵛ
-export corotᵛboundary
+export corotᵛspokes
 export rotᵛ
-export rotᵛboundary
+export rotᵛspokes
 export divᵛ
+export divᵛsuppress
 export codivᵛ
+export codivᵛsuppress
 export cocurlᶜ
 export curlᶜ
 export divᶜ
+export divᶜsuppress
 export codivᶜ
+export codivᶜsuppress
 export cocurlᵛ
-export cocurlᵛboundary
+export cocurlᵛspokes
 export curlᵛ
-export curlᵛboundary
+export curlᵛspokes
 
 end 
