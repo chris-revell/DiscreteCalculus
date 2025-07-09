@@ -63,10 +63,14 @@
 
 module DifferentialOperators
 
+using DrWatson
 using SparseArrays
 using StaticArrays
 using LinearAlgebra
-using DiscreteCalculus
+using FromFile 
+
+@from "GeometryFunctions.jl" using GeometryFunctions
+@from "TopologyFunctions.jl" using TopologyFunctions
 
 # {cocurlᶜ 𝐛}ᵢ = ∑ⱼBᵢⱼ(ϵᵢ𝐭ⱼ)⋅𝐛ⱼ/aᵢ
 function cocurlᶜ(R, A, B, 𝐛)
@@ -81,11 +85,21 @@ function cocurlᶜ(R, A, B, 𝐛)
 end
  
 # {divᶜ 𝐛 }ᵢ = -∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)𝐓ⱼ⋅𝐛ⱼ/aᵢ
+function divᶜsuppress(R, A, B, 𝐛)
+    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    T = findCellLinkLengths(R, A, B)
+    𝐓 = findCellLinks(R, A, B)
+    a = findCellAreas(R, A, B)
+    b = abs.(findBoundaryEdges(B).-1)
+    tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*𝐓[j]⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end 
 function divᶜ(R, A, B, 𝐛)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     T = findCellLinkLengths(R, A, B)
     𝐓 = findCellLinks(R, A, B)
     a = findCellAreas(R, A, B)
+    # b = abs.(findBoundaryEdges(B).-1)
     tmp = [-B[i,j]*(F[j]/(T[j]^2))*𝐓[j]⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
     return dropdims(sum(tmp, dims=2), dims=2)
 end 
@@ -97,6 +111,15 @@ function divᵛ(R, A, B, 𝐛)
     𝐭 = findEdgeTangents(R, A)
     E = findCellLinkTriangleAreas(R, A, B)
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*𝐭[j]⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
+    return dropdims(sum(tmp, dims=1), dims=1)
+end
+function divᵛsuppress(R, A, B, 𝐛)
+    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    t = findEdgeLengths(R, A)
+    𝐭 = findEdgeTangents(R, A)
+    E = findCellLinkTriangleAreas(R, A, B)
+    b = abs.(findBoundaryVertices(A, B) .-1)
+    tmp = [-A[j,k]*(F[j]/(t[j]^2))*b[k]*𝐭[j]⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
 
@@ -112,7 +135,7 @@ function cocurlᵛ(R, A, B, 𝐛)
     return dropdims(sum(tmp, dims=1), dims=1)
 end
 # With boundary considerations (Jensen and Revell 2023 Eq 12): {cocurlᵛ 𝐛}ₖ = -∑ᵢⱼₖBᵢⱼAⱼₖ(ϵₖqᵢₖ)⋅𝐛ⱼ/Eₖ
-function cocurlᵛboundary(R, A, B, 𝐛)
+function cocurlᵛspokes(R, A, B, 𝐛)
     E = findCellLinkTriangleAreas(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
                 0.0 -1.0
@@ -132,6 +155,19 @@ function curlᶜ(R, A, B, 𝐛)
 end
 
 # {codivᶜ 𝐛}ᵢ = -∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵₖ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
+function codivᶜsuppress(R, A, B, 𝐛)
+    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    ϵₖ = SMatrix{2, 2, Float64}([
+        0.0 -1.0
+        1.0 0.0
+    ])
+    𝐓 = findCellLinks(R, A, B)
+    T = findCellLinkLengths(R, A, B)
+    a = findCellAreas(R, A, B)
+    b = abs.(findBoundaryEdges(B).-1)
+    tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*(ϵₖ*𝐓[j])⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
 function codivᶜ(R, A, B, 𝐛)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
@@ -158,6 +194,19 @@ function codivᵛ(R, A, B, 𝐛)
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*(ϵᵢ*𝐭[j])⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
+function codivᵛsuppress(R, A, B, 𝐛)
+    E = findCellLinkTriangleAreas(R, A, B)
+    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    ϵᵢ = SMatrix{2, 2, Float64}([
+        0.0 1.0
+        -1.0 0.0
+    ])
+    𝐭 = findEdgeTangents(R, A)
+    t = findEdgeLengths(R, A)
+    b = abs.(findBoundaryVertices(A, B) .-1)
+    tmp = [-A[j,k]*(F[j]/(t[j]^2))*b[k]*(ϵᵢ*𝐭[j])⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
+    return dropdims(sum(tmp, dims=1), dims=1)
+end
 
 # {curlᵛ 𝐛}ₖ = -∑ⱼAⱼₖ𝐓ⱼ⋅𝐛ⱼ/Eₖ
 function curlᵛ(R, A, B, 𝐛)
@@ -167,7 +216,7 @@ function curlᵛ(R, A, B, 𝐛)
     return dropdims(sum(tmp, dims=1), dims=1)
 end 
 # With boundary considerations (Jensen and Revell 2023 Eq 12): {curlᵛ 𝐛}ₖ = ∑ᵢⱼₖBᵢⱼAⱼₖqᵢₖ⋅𝐛ⱼ/Eₖ
-function curlᵛboundary(R, A, B, 𝐛)
+function curlᵛspokes(R, A, B, 𝐛)
     E = findCellLinkTriangleAreas(R, A, B)
     q = findSpokes(R, A, B)
     tmp = [B[i,j]*A[j,k]*(q[i,k]⋅𝐛[j])/E[k] for i=1:size(B,1), j=1:size(A,1), k=1:size(A,2)]
@@ -240,15 +289,16 @@ end
 function corotᵛ(R, A, B, ϕ)
     𝐓 = findCellLinks(R, A, B)
     T = findCellLinkLengths(R, A, B)
+    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
                 0.0 -1.0
                 1.0 0.0
             ])
     tmp = [A[j,k].*(ϵₖ*𝐓[j]).*ϕ[k]/F[j] for j=1:size(A,1), k=1:size(A,2)]
-    return dropdims(sum(tmp, dims=1), dims=1)
+    return dropdims(sum(tmp, dims=2), dims=2)
 end
 # With boundary considerations (Jensen and Revell 2023 Eq 12): {corotᵛ ϕ}ⱼ = -∑ᵢⱼₖBᵢⱼAⱼₖϵₖ𝐪ᵢₖϕₖ/Fⱼ
-function corotᵛboundary(R, A, B, ϕ)
+function corotᵛspokes(R, A, B, ϕ)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
                 0.0 -1.0
@@ -267,7 +317,7 @@ function rotᵛ(R, A, B, ϕ)
     return dropdims(sum(tmp, dims=2), dims=2)
 end 
 # With boundary considerations (Jensen and Revell 2023 Eq 12): {rotᵛ ϕ}ⱼ = ∑ᵢⱼₖBᵢⱼAⱼₖ𝐪ᵢₖϕₖ/Fⱼ
-function rotᵛboundary(R, A, B, ϕ)
+function rotᵛspokes(R, A, B, ϕ)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     q = findSpokes(R, A, B)
     tmp = [B[i,j]*A[j,k].*q[i,k].*ϕ[k]/F[j] for i=1:size(B,1), j=1:size(A,1), k=1:size(A,2)]
@@ -282,18 +332,22 @@ export rotᶜ
 export gradᶜ
 export cogradᶜ
 export corotᵛ
-export corotᵛboundary
+export corotᵛspokes
 export rotᵛ
-export rotᵛboundary
+export rotᵛspokes
 export divᵛ
+export divᵛsuppress
 export codivᵛ
+export codivᵛsuppress
 export cocurlᶜ
 export curlᶜ
 export divᶜ
+export divᶜsuppress
 export codivᶜ
+export codivᶜsuppress
 export cocurlᵛ
-export cocurlᵛboundary
+export cocurlᵛspokes
 export curlᵛ
-export curlᵛboundary
+export curlᵛspokes
 
 end
