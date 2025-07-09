@@ -67,7 +67,9 @@ findBoundaryEdges(B) = abs.([sum(x) for x in eachcol(B)])
 
 function findBoundaryCells(B)
     boundaryEdges = findBoundaryEdges(B)
-    boundaryCells = findnz(B[:, boundaryEdges.==1])[1]
+    boundaryCellIndices = findnz(B[:, boundaryEdges.==1])[1]
+    boundaryCells = zeros(size(B,1))
+    boundaryCells[boundaryCellIndices] .= 1
     return boundaryCells
 end
 
