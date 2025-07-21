@@ -21,6 +21,7 @@ using FromFile
 @from "TopologyFunctions.jl" using TopologyFunctions
 @from "HNetwork.jl" using HNetwork
 @from "DifferentialOperators.jl" using DifferentialOperators
+@from "InnerOuterProduct.jl" using InnerOuterProduct
 
 export topologyMatrices
 export findĀ
@@ -52,7 +53,7 @@ export findCellLinkTriangles
 export findCellLinkTriangleAreas
 export findEdgeQuadrilaterals
 export findEdgeQuadrilateralAreas
-export findEdgeMidpointPolygons
+export findEdgeMidpointCellPolygons
 export findEdgeLinkMidpoints
 export findSpokes
 export findEdgeMidpointLinks
@@ -102,5 +103,8 @@ export cocurlᵛ
 export cocurlᵛspokes
 export curlᵛ
 export curlᵛspokes
+
+export innerProd 
+export outerProd
 
 end 
