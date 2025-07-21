@@ -19,15 +19,17 @@ using StaticArrays
 # Local modules
 @from "GeometryFunctions.jl" using GeometryFunctions
 @from "TopologyFunctions.jl" using TopologyFunctions
+@from "InnerOuterProduct.jl" using InnerOuterProduct
 
+# Lf with metric components 
 function geometricLf(R, A, B)
-    nCells = size(B, 1)
+    I = size(B, 1)
     Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
     edgeLengths = findEdgeLengths(R, A)
     edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
     trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    onesVec = ones(1, nCells)
+    onesVec = ones(1, I)
     boundaryEdges = abs.(onesVec * B)
     H = Diagonal(cellAreas)
     boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal edges, =0 for boundary edges
@@ -39,14 +41,15 @@ function geometricLf(R, A, B)
     return Lf
 end
 
+# Lc with metric components 
 function geometricLc(R, A, B)
-    nCells = size(B, 1)
+    I = size(B, 1)
     Bᵀ = Transpose(B)
     cellAreas = findCellAreas(R, A, B)
     T = findCellLinks(R, A, B)
     edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
     trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    onesVec = ones(1, nCells)
+    onesVec = ones(1, I)
     boundaryEdges = abs.(onesVec * B)
     boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
     H = Diagonal(cellAreas)
@@ -58,6 +61,7 @@ function geometricLc(R, A, B)
     return Lc
 end
 
+# Lv with metric components 
 function geometricLv(R, A, B)
     Aᵀ = Transpose(A)
     edgeLengths = findEdgeLengths(R, A)
@@ -72,6 +76,7 @@ function geometricLv(R, A, B)
     return Lᵥ
 end
 
+# Lt with metric components 
 function geometricLt(R, A, B)
     Aᵀ = Transpose(A)
     T = findCellLinks(R, A, B)
@@ -86,10 +91,11 @@ function geometricLt(R, A, B)
     return Lₜ
 end
 
+# Purely topological Lf without metric components 
 function topologicalLf(A, B)
-    nCells = size(B, 1)
+    I = size(B, 1)
     Bᵀ = Transpose(B)
-    onesVec = ones(1, nCells)
+    onesVec = ones(1, I)
     boundaryEdges = abs.(onesVec * B)
     H = Diagonal(cellAreas)
     boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
@@ -101,10 +107,11 @@ function topologicalLf(A, B)
     return Lf
 end
 
+# Purely topological Lc without metric components 
 function topologicalLc(A, B)
-    nCells = size(B, 1)
+    I = size(B, 1)
     Bᵀ = Transpose(B)
-    onesVec = ones(1, nCells)
+    onesVec = ones(1, I)
     boundaryEdges = abs.(onesVec * B)
     boundaryEdgesFactor = abs.(boundaryEdges .- 1)      # =1 for internal vertices, =0 for boundary vertices
     boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1, :])
@@ -114,6 +121,7 @@ function topologicalLc(A, B)
     return Lc
 end
 
+# Purely topological Lv without metric components 
 function topologicalLv(A, B)
     Aᵀ = Transpose(A)
     Lᵥ = Aᵀ * A
@@ -121,6 +129,7 @@ function topologicalLv(A, B)
     return Lᵥ
 end
 
+# Purely topological Lt without metric components 
 function topologicalLt(A, B)
     Aᵀ = Transpose(A)
     Lₜ = Aᵀ * A
@@ -155,12 +164,9 @@ function edgeLaplacianPrimal(R, A, B)
     E⁻¹ = spdiagm(1.0./Eⱼ)
     Tₑ = spdiagm((tⱼ.^2)./Fⱼ)
     Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ.^2))
-
     # boundaryEdgesFactor = abs.(findBoundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
     # diagonalComponent = boundaryEdgesFactor'
     # Tₑ = Diagonal(diagonalComponent)
-
-
     Lprimal = A*E⁻¹*Aᵀ*Tₑ⁻¹ + Tₑ*Bᵀ*H⁻¹*B
     dropzeros!(Lprimal)
     return Lprimal
