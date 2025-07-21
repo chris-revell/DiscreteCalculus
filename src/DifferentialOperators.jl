@@ -85,22 +85,22 @@ function cocurlᶜ(R, A, B, 𝐛)
 end
  
 # {divᶜ 𝐛 }ᵢ = -∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)𝐓ⱼ⋅𝐛ⱼ/aᵢ
-function divᶜsuppress(R, A, B, 𝐛)
-    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    T = findCellLinkLengths(R, A, B)
-    𝐓 = findCellLinks(R, A, B)
-    a = findCellAreas(R, A, B)
-    b = abs.(findBoundaryEdges(B).-1)
-    tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*𝐓[j]⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
-    return dropdims(sum(tmp, dims=2), dims=2)
-end 
 function divᶜ(R, A, B, 𝐛)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     T = findCellLinkLengths(R, A, B)
     𝐓 = findCellLinks(R, A, B)
     a = findCellAreas(R, A, B)
-    # b = abs.(findBoundaryEdges(B).-1)
     tmp = [-B[i,j]*(F[j]/(T[j]^2))*𝐓[j]⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end 
+# With boundary component suppression 
+function divᶜsuppress(R, A, B, 𝐛)
+    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    T = findCellLinkLengths(R, A, B)
+    𝐓 = findCellLinks(R, A, B)
+    a = findCellAreas(R, A, B)
+    b = abs.(findBoundaryEdges(B).-1) # Indicator function 
+    tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*𝐓[j]⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
     return dropdims(sum(tmp, dims=2), dims=2)
 end 
 
@@ -113,12 +113,13 @@ function divᵛ(R, A, B, 𝐛)
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*𝐭[j]⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
+# With boundary component suppression 
 function divᵛsuppress(R, A, B, 𝐛)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     t = findEdgeLengths(R, A)
     𝐭 = findEdgeTangents(R, A)
     E = findCellLinkTriangleAreas(R, A, B)
-    b = abs.(findBoundaryVertices(A, B) .-1)
+    b = abs.(findBoundaryVertices(A, B) .-1) # Indicator function 
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*b[k]*𝐭[j]⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
@@ -155,19 +156,6 @@ function curlᶜ(R, A, B, 𝐛)
 end
 
 # {codivᶜ 𝐛}ᵢ = -∑ⱼBᵢⱼ(Fⱼ/Tⱼ²)(ϵₖ𝐓ⱼ)⋅𝐛ⱼ/aᵢ
-function codivᶜsuppress(R, A, B, 𝐛)
-    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    ϵₖ = SMatrix{2, 2, Float64}([
-        0.0 -1.0
-        1.0 0.0
-    ])
-    𝐓 = findCellLinks(R, A, B)
-    T = findCellLinkLengths(R, A, B)
-    a = findCellAreas(R, A, B)
-    b = abs.(findBoundaryEdges(B).-1)
-    tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*(ϵₖ*𝐓[j])⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
-    return dropdims(sum(tmp, dims=2), dims=2)
-end
 function codivᶜ(R, A, B, 𝐛)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
@@ -180,6 +168,21 @@ function codivᶜ(R, A, B, 𝐛)
     tmp = [-B[i,j]*(F[j]/(T[j]^2))*(ϵₖ*𝐓[j])⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
     return dropdims(sum(tmp, dims=2), dims=2)
 end
+# With boundary component suppression 
+function codivᶜsuppress(R, A, B, 𝐛)
+    F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    ϵₖ = SMatrix{2, 2, Float64}([
+        0.0 -1.0
+        1.0 0.0
+    ])
+    𝐓 = findCellLinks(R, A, B)
+    T = findCellLinkLengths(R, A, B)
+    a = findCellAreas(R, A, B)
+    b = abs.(findBoundaryEdges(B).-1) # Indicator function 
+    tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*(ϵₖ*𝐓[j])⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
+
 
 # {codivᵛ 𝐛}ₖ = -∑ⱼAⱼₖ(Fⱼ/tⱼ²)(ϵᵢ𝐭ⱼ)⋅𝐛ⱼ/Eₖ
 function codivᵛ(R, A, B, 𝐛)
@@ -194,6 +197,7 @@ function codivᵛ(R, A, B, 𝐛)
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*(ϵᵢ*𝐭[j])⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
+# With boundary component suppression 
 function codivᵛsuppress(R, A, B, 𝐛)
     E = findCellLinkTriangleAreas(R, A, B)
     F = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
@@ -203,7 +207,7 @@ function codivᵛsuppress(R, A, B, 𝐛)
     ])
     𝐭 = findEdgeTangents(R, A)
     t = findEdgeLengths(R, A)
-    b = abs.(findBoundaryVertices(A, B) .-1)
+    b = abs.(findBoundaryVertices(A, B) .-1) # Indicator function 
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*b[k]*(ϵᵢ*𝐭[j])⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
