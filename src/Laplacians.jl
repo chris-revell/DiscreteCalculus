@@ -21,7 +21,7 @@ using StaticArrays
 @from "TopologyFunctions.jl" using TopologyFunctions
 @from "InnerOuterProduct.jl" using InnerOuterProduct
 
-# Lf with metric components 
+# Scalar Laplacian Lf with metric components 
 function geometricLf(R, A, B)
     I = size(B, 1)
     Bᵀ = Transpose(B)
@@ -41,7 +41,7 @@ function geometricLf(R, A, B)
     return Lf
 end
 
-# Lc with metric components 
+# Scalar Laplacian Lc with metric components 
 function geometricLc(R, A, B)
     I = size(B, 1)
     Bᵀ = Transpose(B)
@@ -61,7 +61,7 @@ function geometricLc(R, A, B)
     return Lc
 end
 
-# Lv with metric components 
+# Scalar Laplacian Lv with metric components 
 function geometricLv(R, A, B)
     Aᵀ = Transpose(A)
     edgeLengths = findEdgeLengths(R, A)
@@ -76,7 +76,7 @@ function geometricLv(R, A, B)
     return Lᵥ
 end
 
-# Lt with metric components 
+# Scalar Laplacian Lt with metric components 
 function geometricLt(R, A, B)
     Aᵀ = Transpose(A)
     T = findCellLinks(R, A, B)
@@ -91,7 +91,7 @@ function geometricLt(R, A, B)
     return Lₜ
 end
 
-# Purely topological Lf without metric components 
+# Purely topological scalar Laplacian Lf without metric components 
 function topologicalLf(A, B)
     I = size(B, 1)
     Bᵀ = Transpose(B)
@@ -107,7 +107,7 @@ function topologicalLf(A, B)
     return Lf
 end
 
-# Purely topological Lc without metric components 
+# Purely topological scalar Laplacian Lc without metric components 
 function topologicalLc(A, B)
     I = size(B, 1)
     Bᵀ = Transpose(B)
@@ -121,7 +121,7 @@ function topologicalLc(A, B)
     return Lc
 end
 
-# Purely topological Lv without metric components 
+# Purely topological scalar Laplacian Lv without metric components 
 function topologicalLv(A, B)
     Aᵀ = Transpose(A)
     Lᵥ = Aᵀ * A
@@ -129,7 +129,7 @@ function topologicalLv(A, B)
     return Lᵥ
 end
 
-# Purely topological Lt without metric components 
+# Purely topological scalar Laplacian Lt without metric components 
 function topologicalLt(A, B)
     Aᵀ = Transpose(A)
     Lₜ = Aᵀ * A
@@ -137,22 +137,7 @@ function topologicalLt(A, B)
     return Lₜ
 end
 
-# function edgeLaplacianPrimal(R, A, B)
-#     aᵢ = findCellAreas(R, A, B)
-#     Eⱼ = findCellLinkTriangleAreas(R, A, B)
-#     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-#     tⱼ = findEdgeLengths(R, A)
-#     Aᵀ = transpose(A)
-#     Bᵀ = transpose(B)
-#     H⁻¹ = spdiagm(1.0./aᵢ)
-#     E⁻¹ = spdiagm(1.0./Eⱼ)
-#     Tₑ = spdiagm((tⱼ.^2)./Fⱼ)
-#     Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ.^2))
-#     Lprimal = A*E⁻¹*Aᵀ*Tₑ⁻¹ + Tₑ*Bᵀ*H⁻¹*B
-#     dropzeros!(Lprimal)
-#     return Lprimal
-# end
-
+# Vector Laplacian
 function edgeLaplacianPrimal(R, A, B)
     aᵢ = findCellAreas(R, A, B)
     Eⱼ = findCellLinkTriangleAreas(R, A, B)
@@ -172,6 +157,7 @@ function edgeLaplacianPrimal(R, A, B)
     return Lprimal
 end
    
+# Vector Laplacian
 function edgeLaplacianDual(R, A, B)
     aᵢ = findCellAreas(R, A, B)
     Eⱼ = findCellLinkTriangleAreas(R, A, B)
@@ -188,61 +174,45 @@ function edgeLaplacianDual(R, A, B)
     return Ldual
 end
 
-function edgeMidpointLDirichlet(R, A, B)
-    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
-    cellAreas = findCellAreas(R, A, B)
-    edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
-    edgeTangents = findEdgeTangents(R, A)
-    Ā = abs.(A)
-    B̄ = abs.(B)
-    C = B̄ * Ā .÷ 2
-    vertexAreas = findVertexAreas(R, A, B)
-    L = spzeros(Float64,(nCells,nCells))
-    for k=1:nVerts
-        for i in findall(x->x!=0, C[:,k])
-            for i′ in findall(x->x!=0, C[:,k])
-                L[i, i′] += (edgeMidpointLinks[i,k]⋅edgeMidpointLinks[i′,k])/(cellAreas[i]*vertexAreas[k])
-            end
-        end
-    end
-    dropzeros!(L)
+# Proc Roy Soc A20; 
+function cotanL(R, A, B)
+    I = size(B,1)
+    J = size(B,2)
+    K = size(A,2)
+    aᵢ = findCellAreas(R, A, B)
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    Dₖ = findEdgeMidpointLinkVertexAreas(R, A, B)
+    tmp = [𝐬ᵢₖ[i,k]⋅𝐬ᵢₖ[i′,k]/(aᵢ[i]*Dₖ[k]) for i=1:I, i′=1:I, k=1:K]
+    L = sparse(dropdims(sum(tmp, dims=3), dims=3))
     return L
 end
 
-function edgeMidpointLNeumann(R, A, B)
-    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
-    Aᵀ = Transpose(A)
-    Āᵀ = abs.(Aᵀ)
-    Ā = abs.(A)
-    B̄ = abs.(B)
-    C = B̄ * Ā .÷ 2
-    cellAreas = findCellAreas(R, A, B)
-    edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
-    boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
-    for k in findall(x->x!=0, boundaryVertices)
-        edgeMidpointLinks[:,k] .= fill(SVector{2,Float64}(zeros(2)),nCells)
-    end
-    edgeTangents = findEdgeTangents(R, A)
-    vertexAreas = findVertexAreas(R, A, B)
-    L = spzeros(Float64,(nCells,nCells))
-    for k=1:nVerts
-        for i in findall(x->x!=0, C[:,k])
-            for i′ in findall(x->x!=0, C[:,k])
-                L[i, i′] += (edgeMidpointLinks[i,k]⋅edgeMidpointLinks[i′,k])/(cellAreas[i]*vertexAreas[k])
-            end
-        end
-    end
-    dropzeros!(L)
-    return L
+function cotan𝐋(R, A, B)
+    I = size(B,1)
+    J = size(B,2)
+    K = size(A,2)
+    ϵᵢ = SMatrix{2, 2, Float64}([
+                0.0 1.0
+                -1.0 0.0
+            ])
+    aᵢ = findCellAreas(R, A, B)
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    Dₖ = findEdgeMidpointLinkVertexAreas(R, A, B)
+    tmp = [(outerProd(𝐬ᵢₖ[i,k], 𝐬ᵢₖ[i,k′])/Dₖ[k] + outerProd(ϵᵢ*𝐬ᵢₖ[i,k], ϵᵢ*𝐬ᵢₖ[i,k′])/Dₖ[k])/aᵢ[i] for i=1:I, k=1:K, k′=1:K]
+    𝐋 = sparse(dropdims(sum(tmp, dims=1), dims=1))
+    return 𝐋
 end
+
+
+#!!!!!!!!!!!!
 
 #   Lⱼⱼ′=∑ₖAⱼₖ(t̂ⱼ⋅t̂ⱼ′)Aⱼ′ₖ/Eₖ
 function scalarEdgeL(R, A, B)
-    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
+    I = size(B,1); J = size(B,2); K = size(A,2)
     edgeTangentsNormalised = normalize.(findEdgeTangents(R, A))
-    L = spzeros(nEdges,nEdges)
-    vertexAreas = findVertexAreas(R, A, B)
-    for k=1:nVerts
+    L = spzeros(J,J)
+    vertexAreas = findEdgeMidpointLinkVertexAreas(R, A, B)
+    for k=1:K
         k_js = findall(x->x!=0,A[:,k])
         for j in k_js
             for j′ in k_js 
@@ -254,67 +224,25 @@ function scalarEdgeL(R, A, B)
     return L
 end
 
-# Lᵢᵢ′ = ∑ₖB̄ᵢⱼAⱼₖ(t̂ⱼ⋅t̂ⱼ′)(Aⱼ′ₖ/Eₖ)B̄ᵢ′ⱼ′
+# Lᵢᵢ′ = ∑ⱼⱼ,ₖ(1/Lᵢ)B̄ᵢⱼAⱼₖ(t̂ⱼ⋅t̂ⱼ′)(Aⱼ′ₖB̄ᵢ′ⱼ′/Dₖ)
+# Lᵢ = ∑ⱼB̄ᵢⱼAⱼₖ𝐭̂ⱼ
+# Proc Roy Soc A20; 
 function uniformCellTensionL(R, A, B)
-    nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
-    edgeTangentsNormalised = normalize.(findEdgeTangents(R, A))
-    L = spzeros(nCells,nCells)
+    I = size(B,1); J = size(B,2); K = size(A,2)
+    𝐭 = findEdgeTangents(R, A)
+    𝐭̂ = normalize.(𝐭)
     B̄ = abs.(B)
-    C = findC(A,B)
-    vertexAreas = findVertexAreas(R, A, B)
-    for k=1:nVerts
-        k_js = findall(x->x!=0,A[:,k])
-        for j in k_js
-            for j′ in k_js 
-                j_is =findall(x->x!=0,B[:,j])#∩findall(x->x!=0,B[:,j′])
-                j′_i′s =findall(x->x!=0,B[:,j′])#∩findall(x->x!=0,B[:,j′])
-                for i in j_is
-                    for i′ in j′_i′s 
-                        L[i,i′] += (edgeTangentsNormalised[j]⋅edgeTangentsNormalised[j′])*A[j,k]*A[j′,k]*B̄[i,j]*B̄[i′,j′]/vertexAreas[k]
-                    end
-                end
-            end
-        end
-    end
-    dropzeros!(L)
-    return L
+    Dₖ = findEdgeMidpointLinkVertexAreas(R, A, B)
+    Lᵢtmp = [B̄[i,j]*𝐭[j] for i=1:I, j=1:J] # A11
+    Lᵢ = dropdims(sum(Lᵢtmp, dims=2), dims=2)
+
+    Ltmp = spzeros(I,I)
+    Ltmp .= [B̄[i,j]*A[j,k]*(𝐭̂[j]⋅𝐭̂[j′])*A[j′,k]*B̄[i′,j′]./(Lᵢ[i].*Dₖ[k]) for i=1:I, i′=1:I, j=1:J, j′=1:J, k=1:K]
+    return dropdims(sum(tmp, dims=(3:5)), dims=(3:5))
 end
 
+#!!!!!!!!!!!!
 
-
-# function edgeMidpointLfunction(ϕᵢ, R, A, B)
-    
-#     nCells = size(B,1); nEdges = size(B,2); nVerts = size(A,2)
-
-#     cellAreas = findCellAreas(R, A, B)
-    
-#     sᵢₖ = findEdgeMidpointLinks(R, A, B)
-
-#     edgeTangents = findEdgeTangents(R, A)
-    
-#     Ā = abs.(A)
-#     B̄ = abs.(B)
-#     C = B̄ * Ā .÷ 2
-
-#     αₖ=Float64[]
-#     for k=1:nVerts
-#         k_is = findall(x->x!=0, C[:,k])
-#         α = 0.5*norm([sᵢₖ[(k_is[1], k)]...,0.0]×[sᵢₖ[(k_is[2],k)]...,0.0])
-#         push!(αₖ,α)
-#     end
-
-#     Lϕ = zeros(nCells)
-
-#     for k=1:nVerts
-#         for i in findall(x->x!=0, C[:,k])
-#             for i′ in findall(x->x!=0, C[:,k])
-#                 Lϕ[i] += (sᵢₖ[i,k]⋅sᵢₖ[i′,k])*ϕᵢ[i′]/(cellAreas[i]*αₖ[k])
-#             end
-#         end
-#     end
-    
-#     return Lϕ
-# end
 
 export geometricLf
 export geometricLc
@@ -327,9 +255,96 @@ export topologicalLt
 export edgeLaplacianPrimal
 export edgeLaplacianDual
 
-export edgeMidpointLDirichlet
-export edgeMidpointLNeumann
+export cotanL
+export cotan𝐋
+export edgeMidpointLNeumannOld
+
 export scalarEdgeL
 export uniformCellTensionL
 
 end #end module 
+
+
+
+# for k=1:K
+    #     k_js = findall(x->x!=0,A[:,k])
+    #     for j in k_js
+    #         for j′ in k_js 
+    #             j_is =findall(x->x!=0,B[:,j])#∩findall(x->x!=0,B[:,j′])
+    #             j′_i′s =findall(x->x!=0,B[:,j′])#∩findall(x->x!=0,B[:,j′])
+    #             for i in j_is
+    #                 for i′ in j′_i′s 
+    #                     L[i,i′] += (𝐭̂[j]⋅𝐭̂[j′])*A[j,k]*A[j′,k]*B̄[i,j]*B̄[i′,j′]/vertexAreas[k]
+    #                 end
+    #             end
+    #         end
+    #     end
+    # end
+    # dropzeros!(L)
+    # return L
+
+
+
+# function edgeMidpointLNeumannOld(R, A, B)
+#     I = size(B,1); J = size(B,2); K = size(A,2)
+#     Aᵀ = Transpose(A)
+#     Āᵀ = abs.(Aᵀ)
+#     Ā = abs.(A)
+#     B̄ = abs.(B)
+#     C = B̄ * Ā .÷ 2
+#     cellAreas = findCellAreas(R, A, B)
+#     edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
+#     boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
+#     for k in findall(x->x!=0, boundaryVertices)
+#         edgeMidpointLinks[:,k] .= fill(SVector{2,Float64}(zeros(2)),I)
+#     end
+#     edgeTangents = findEdgeTangents(R, A)
+#     vertexAreas = findEdgeMidpointLinkVertexAreas(R, A, B)
+#     L = spzeros(Float64,(I,I))
+#     for k=1:K
+#         for i in findall(x->x!=0, C[:,k])
+#             for i′ in findall(x->x!=0, C[:,k])
+#                 L[i, i′] += (edgeMidpointLinks[i,k]⋅edgeMidpointLinks[i′,k])/(cellAreas[i]*vertexAreas[k])
+#             end
+#         end
+#     end
+#     dropzeros!(L)
+#     return L
+# end
+
+
+
+
+# function edgeMidpointLfunction(ϕᵢ, R, A, B)
+    
+#     I = size(B,1); J = size(B,2); K = size(A,2)
+
+#     cellAreas = findCellAreas(R, A, B)
+    
+#     𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+
+#     edgeTangents = findEdgeTangents(R, A)
+    
+#     Ā = abs.(A)
+#     B̄ = abs.(B)
+#     C = B̄ * Ā .÷ 2
+
+#     αₖ=Float64[]
+#     for k=1:K
+#         k_is = findall(x->x!=0, C[:,k])
+#         α = 0.5*norm([𝐬ᵢₖ[(k_is[1], k)]...,0.0]×[𝐬ᵢₖ[(k_is[2],k)]...,0.0])
+#         push!(αₖ,α)
+#     end
+
+#     Lϕ = zeros(I)
+
+#     for k=1:K
+#         for i in findall(x->x!=0, C[:,k])
+#             for i′ in findall(x->x!=0, C[:,k])
+#                 Lϕ[i] += (𝐬ᵢₖ[i,k]⋅𝐬ᵢₖ[i′,k])*ϕᵢ[i′]/(cellAreas[i]*αₖ[k])
+#             end
+#         end
+#     end
+    
+#     return Lϕ
+# end

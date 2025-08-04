@@ -44,7 +44,7 @@ export findEdgeLengths
 export findEdgeMidpoints
 export findCellPerimeterLengths
 export findCellAreas
-export findVertexAreas
+export findEdgeMidpointLinkVertexAreas
 export findCellPolygons
 export findCellLinks
 export findCellLinkMidpoints
@@ -74,7 +74,7 @@ export topologicalLt
 export edgeLaplacianPrimal
 export edgeLaplacianDual
 
-export edgeMidpointLDirichlet
+export edgeMidpointL
 export edgeMidpointLNeumann
 export scalarEdgeL
 export uniformCellTensionL

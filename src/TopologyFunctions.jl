@@ -5,6 +5,7 @@
 #  Created by Christopher Revell on 15/08/2023.
 #
 #
+# A set of functions to derive objects that depend only on system topology
 
 module TopologyFunctions
 
@@ -27,7 +28,7 @@ findBᵀ(B) = Transpose(B)
 findB̄ᵀ(B) = abs.(Transpose(B))
 findCellEdgeCount(B) = sum.(eachrow(abs.(B))) # Zᵢ
 findBoundaryVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
-findBoundaryEdges(B) = abs.([sum(x) for x in eachcol(B)])
+findBoundaryEdges(B) = abs.([sum(x) for x in eachcol(B)]) # qⱼᵇ = Bᵀ𝟙ᵢ
 function findBoundaryCells(B)
     boundaryEdges = findBoundaryEdges(B)
     boundaryCellIndices = findnz(B[:, boundaryEdges.==1])[1]
