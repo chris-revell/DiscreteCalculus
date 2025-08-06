@@ -329,6 +329,81 @@ function rotᵛspokes(R, A, B, ϕ)
 end 
 
 
+# grad_A = ∑ᵢₖDₖ⁻¹ϵᵢ𝐬ᵢₖ𝐪ₖ⊗𝐪ᵢ
+# Gradient over vertices 
+function grad_A(R, A, B, f)
+    I = size(B,1)
+    K = size(A,2)
+    ϵᵢ = SMatrix{2, 2, Float64}([
+        0.0 1.0
+        -1.0 0.0
+    ])
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    Dₖ = findEdgeMidpointLinkVertexAreas(R, A, B)
+    tmp = [ϵᵢ*𝐬ᵢₖ[i,k]*f[i]./Dₖ[k] for k=1:K, i=1:I]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
+
+# -div_A = ∑ᵢₖaᵢ⁻¹(𝐬ᵢₖ⋅)𝐪ᵢ⊗𝐪ₖ
+# hₖ vector field over vertices
+# Divergence over cells 
+function div_A(R, A, B, 𝐟ₖ)
+    I = size(B,1)
+    K = size(A,2)
+    ϵᵢ = SMatrix{2, 2, Float64}([
+        0.0 1.0
+        -1.0 0.0
+    ])
+    aᵢ = findCellAreas(R, A, B)
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    tmp = [-(ϵᵢ*𝐬ᵢₖ[i,k])⋅𝐟ₖ[k]/aᵢ[i] for i=1:I, k=1:K]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
+    
+# curl_A = ∑ᵢₖaᵢ⁻¹(𝐬ᵢₖ⋅)𝐪ᵢ⊗𝐪ₖ
+# hₖ vector field over vertices
+# Curl over cells 
+function curl_A(R, A, B, 𝐟ₖ)
+    I = size(B,1)
+    K = size(A,2)
+    aᵢ = findCellAreas(R, A, B)
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    tmp = [𝐬ᵢₖ[i,k]⋅𝐟ₖ[k]/aᵢ[i] for i=1:I, k=1:K]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
+
+# curl_A = ∑ᵢₖDₖ⁻¹𝐬ᵢₖ𝐪ₖ⊗𝐪ᵢ
+# Rot over vertices
+function rot_A(R, A, B, f)
+    I = size(B,1)
+    K = size(A,2)
+    aᵢ = findCellAreas(R, A, B)
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    tmp = [𝐬ᵢₖ[i,k]*f[i]/Dₖ[k] for k=1:K, i=1:I]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
+
+# grad_L = -∑ᵢₖDₖ⁻¹𝐮ᵢₖ𝐪ₖ⊗𝐪ᵢ′  
+function grad_L(R, A, B, f)
+    𝐭 = findEdgeTangents(R, A)
+    𝐭̂ = normalize.(𝐭)
+    𝐮ᵢₖtmp = [abs(B[i,j])*A[j,k]*𝐭̂[j] for i=1:I, j=1:J, k=1:K]
+    𝐮ᵢₖ = dropdims(sum(𝐮ᵢₖtmp, dims=2), dims=2)
+    tmp = [-𝐮ᵢₖ[i,k]*f[i]/Dₖ[k] for k=1:K, i=1:I]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
+
+# -div_L = -∑ᵢₖLᵢ⁻¹(𝐮ᵢₖ⋅)𝐪ᵢ′⊗𝐪ₖ
+function div_L(R, A, B, 𝐟ₖ)
+    Lᵢ = findCellPerimeterLengths(R, A, B)
+    𝐭 = findEdgeTangents(R, A)
+    𝐭̂ = normalize.(𝐭)
+    𝐮ᵢₖtmp = [abs(B[i,j])*A[j,k]*𝐭̂[j] for i=1:I, j=1:J, k=1:K]
+    𝐮ᵢₖ = dropdims(sum(𝐮ᵢₖtmp, dims=2), dims=2)
+    tmp = [𝐮ᵢₖ[i,k]⋅𝐟ₖ[k]/Lᵢ[i] for i=1:I, k=1:K]
+    return dropdims(sum(tmp, dims=2), dims=2)
+end
+
 export gradᵛ
 export cogradᵛ
 export corotᶜ
@@ -353,5 +428,12 @@ export cocurlᵛ
 export cocurlᵛspokes
 export curlᵛ
 export curlᵛspokes
+
+export grad_A
+export div_A
+export curl_A
+export rot_A
+export grad_L
+export div_L
 
 end

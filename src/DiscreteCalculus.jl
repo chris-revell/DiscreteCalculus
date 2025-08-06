@@ -104,6 +104,13 @@ export cocurlᵛspokes
 export curlᵛ
 export curlᵛspokes
 
+export grad_A
+export div_A
+export curl_A
+export rot_A
+export grad_L
+export div_L
+
 export innerProd 
 export outerProd
 

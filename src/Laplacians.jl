@@ -198,10 +198,14 @@ function cotan𝐋(R, A, B)
     aᵢ = findCellAreas(R, A, B)
     𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
     Dₖ = findEdgeMidpointLinkVertexAreas(R, A, B)
+    # 𝐪ₖ = eachcol(Diagonal(ones(Int64, K)))
+    # tmp = [outerProd(𝐪ₖ[k],𝐪ₖ[k′]).*(outerProd(𝐬ᵢₖ[i,k], 𝐬ᵢₖ[i,k′])/Dₖ[k] + outerProd(ϵᵢ*𝐬ᵢₖ[i,k], ϵᵢ*𝐬ᵢₖ[i,k′])/Dₖ[k])/aᵢ[i] for i=1:I, k=1:K, k′=1:K]
+    # 𝐋 = sparse(sum(tmp, dims=1))
     tmp = [(outerProd(𝐬ᵢₖ[i,k], 𝐬ᵢₖ[i,k′])/Dₖ[k] + outerProd(ϵᵢ*𝐬ᵢₖ[i,k], ϵᵢ*𝐬ᵢₖ[i,k′])/Dₖ[k])/aᵢ[i] for i=1:I, k=1:K, k′=1:K]
     𝐋 = sparse(dropdims(sum(tmp, dims=1), dims=1))
     return 𝐋
 end
+
 
 
 #!!!!!!!!!!!!
@@ -257,6 +261,7 @@ export edgeLaplacianDual
 
 export cotanL
 export cotan𝐋
+# export cotan𝐋2
 export edgeMidpointLNeumannOld
 
 export scalarEdgeL
