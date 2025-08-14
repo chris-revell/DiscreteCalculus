@@ -54,7 +54,7 @@ export findCellLinkTriangleAreas
 export findEdgeQuadrilaterals
 export findEdgeQuadrilateralAreas
 export findEdgeMidpointCellPolygons
-export findEdgeLinkMidpoints
+export findEdgeLinkIntersections
 export findSpokes
 export findEdgeMidpointLinks
 

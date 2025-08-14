@@ -27,7 +27,7 @@
 #                   findEdgeMidpointCellPolygons
 # 𝐬ᵢₖ findEdgeMidpointLinks
 # Dₖ findEdgeMidpointLinkVertexAreas
-#  findEdgeLinkMidpoints
+#  findEdgeLinkIntersections
 
 module GeometryFunctions
 
@@ -141,6 +141,36 @@ function findCellLinkTriangles(R, A, B)
     return linkTriangles
 end
 
+# 𝐛ⱼ 
+# Returns a vector of SVectors corresponding to the intersection of edge 𝐭ⱼ with cell link 𝐓ⱼ
+function findEdgeLinkIntersections(R, A, B)
+    J = size(B,2)
+    𝐭ⱼ = findEdgeTangents(R, A)
+    𝐓ⱼ = findCellLinks(R, A, B)
+    boundaryEdges = findBoundaryEdges(B).==1
+    Rᵢ = findCellCentresOfMass(R, A, B)
+    𝐛ⱼ = fill(SVector{2,Float64}(zeros(2)), J)
+    for j = 1:J
+        # Find vertices and cells surrounding edge j
+        j_ks = findall(x -> x != 0, A[j, :])
+        j_is = findall(x -> x != 0, B[:, j])
+        # mⱼ = R[k] .+ ((cellCentresOfMass[i] .- R[k]) ⋅ (ϵₖ * T[j])) / (2.0 * trapeziumAreas[j]) .* edgeTangents[j]
+
+        # Form Line object for edge
+        𝐭Line = Line(Point{2,Float64}.(R[j_ks])...)
+        # Form Line object for cell link. 
+        # Note that by starting the line at Rᵢ[j_is[1]] and then 
+        # ending it at Rᵢ[j_is[1]].-2.0*B[j_is[1],j].*𝐓ⱼ[j]], the 
+        # line is guaranteed to intersect with 𝐭Line, even if 𝐭Line is a peripheral edge, 
+        # in which case we can't construct the line with a second cell position, and using the edge midpoint will make the line 
+        # too short to find an intersection 
+        𝐓Line = Line(Point{2,Float64}.([Rᵢ[j_is[1]], Rᵢ[j_is[1]].-2.0*B[j_is[1],j].*𝐓ⱼ[j]])...)
+        @show intersects(𝐭Line, 𝐓Line)[1]
+        𝐛ⱼ[j] = SVector{2,Float64}(intersects(𝐭Line, 𝐓Line)[2])
+    end
+    return 𝐛ⱼ
+end
+
 # Eₖ
 function findCellLinkTriangleAreas(R, A, B)
     Eₖ = findCellLinkTriangles(R, A, B)
@@ -187,7 +217,6 @@ function findSpokes(R, A, B)
     end
     return 𝐪ᵢₖ
 end
-
 
 function findEdgeMidpointCellPolygons(R, A, B)
     I = size(B, 1)
@@ -242,33 +271,7 @@ function findEdgeMidpointLinkVertexAreas(R, A, B)
     return vertexAreas
 end
 
-#!!!!!!!!!!!!!!!
-function findEdgeLinkMidpoints(R, A, B, ϵᵢ)
-    J = size(B, 2)
-    cellCentresOfMass = findCellCentresOfMass(R, A, B)
-    edgeTangents = findEdgeTangents(R, A)
-    edgeMidpoints = findEdgeMidpoints(R, A)
-    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
-    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    T = findCellLinks(R, A, B)
-    # Rotation matrix around vertices is the opposite of that around cells
-    ϵₖ = -1 * ϵᵢ
-    onesVec = ones(1, I)
-    boundaryEdges = abs.(onesVec * B)
-    cᵖ = boundaryEdges' .* edgeMidpoints
-    intersections = SVector{2,Float64}[]
-    for j = 1:J
-        if boundaryEdges[j] == 0
-            k = findall(x -> x < 0, A[j, :])[1]
-            i = findall(x -> x < 0, B[:, j])[1]
-            mⱼ = R[k] .+ ((cellCentresOfMass[i] .- R[k]) ⋅ (ϵₖ * T[j])) / (2.0 * trapeziumAreas[j]) .* edgeTangents[j]
-            push!(intersections, mⱼ)
-        else
-            push!(intersections, cᵖ[j])
-        end
-    end
-    return intersections
-end
+
 
 export findEdgeTangents
 export findEdgeLengths
@@ -288,6 +291,6 @@ export findSpokes
 export findEdgeMidpointCellPolygons
 export findEdgeMidpointLinks
 export findEdgeMidpointLinkVertexAreas
-export findEdgeLinkMidpoints
+export findEdgeLinkIntersections
 
 end 
