@@ -25,38 +25,27 @@ using StaticArrays
 function geometricLf(R, A, B)
     I = size(B, 1)
     Bᵀ = Transpose(B)
-    cellAreas = findCellAreas(R, A, B)
-    edgeLengths = findEdgeLengths(R, A)
-    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
-    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    onesVec = ones(1, I)
-    boundaryEdges = abs.(onesVec * B)
-    H = Diagonal(cellAreas)
-    boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal edges, =0 for boundary edges
-    diagonalComponent = (boundaryEdgesFactor'.*((edgeLengths .^ 2)./(2.0 .* trapeziumAreas)))[:, 1] # Multiply by boundaryEdgesFactor vector to set boundary vertex contributions to zero
-    Tₑ = Diagonal(diagonalComponent)
-    invH = inv(H)
-    Lf = invH * B * Tₑ * Bᵀ
+    aᵢ = findCellAreas(R, A, B)
+    tⱼ = findEdgeLengths(R, A)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    jInternal = abs.(findBoundaryEdges(B).-1) # =1 for internal edges, =0 for boundary edges
+    Tₑ = Diagonal((jInternal.*((tⱼ .^ 2)./(Fⱼ)))) # Multiply by jInternal vector to set boundary vertex contributions to zero
+    H⁻¹ = Diagonal(1.0./aᵢ)
+    Lf = H⁻¹*B*Tₑ*Bᵀ
     dropzeros!(Lf)
     return Lf
 end
 
 # Scalar Laplacian Lc with metric components 
 function geometricLc(R, A, B)
-    I = size(B, 1)
     Bᵀ = Transpose(B)
-    cellAreas = findCellAreas(R, A, B)
-    T = findCellLinks(R, A, B)
-    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
-    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    onesVec = ones(1, I)
-    boundaryEdges = abs.(onesVec * B)
-    boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
-    H = Diagonal(cellAreas)
-    Tₗ = Diagonal(((norm.(T)) .^ 2) ./ (2.0 .* trapeziumAreas))
-    invTₗ = inv(Tₗ)
-    boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1, :])
-    Lc = (H \ B) * boundaryEdgesFactorMat * invTₗ * Bᵀ
+    aᵢ = findCellAreas(R, A, B)
+    Tⱼ = findCellLinkLengths(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    jInternal = abs.(findBoundaryEdges(B).-1) # =1 for internal edges, =0 for boundary edges
+    H⁻¹ = Diagonal(1.0./aᵢ)
+    Tₗ⁻¹ = Diagonal(jInternal.*Fⱼ./(Tⱼ.^2)) # Multiply by jInternal vector to set boundary vertex contributions to zero
+    Lc = H⁻¹*B*Tₗ⁻¹*Bᵀ
     dropzeros!(Lc)
     return Lc
 end
@@ -64,61 +53,50 @@ end
 # Scalar Laplacian Lv with metric components 
 function geometricLv(R, A, B)
     Aᵀ = Transpose(A)
-    edgeLengths = findEdgeLengths(R, A)
-    linkTriangles = findCellLinkTriangles(R, A, B)
-    linkTriangleAreas = abs.(area.(linkTriangles))
-    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
-    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    E = Diagonal(linkTriangleAreas)
-    Tₑ = Diagonal((edgeLengths .^ 2) ./ (2.0 .* trapeziumAreas))
-    Lᵥ = (E \ Aᵀ) * (Tₑ \ A)
-    dropzeros!(Lᵥ)
-    return Lᵥ
+    tⱼ = findEdgeLengths(R, A)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    E⁻¹ = Diagonal(1.0./Eⱼ)
+    Tₑ⁻¹ = Diagonal(Fⱼ./(tⱼ .^ 2))
+    Lᵥ = E⁻¹*Aᵀ*Tₑ⁻¹*A
+    dropzeros!(L_𝒱)
+    return L_𝒱
 end
 
 # Scalar Laplacian Lt with metric components 
 function geometricLt(R, A, B)
     Aᵀ = Transpose(A)
-    T = findCellLinks(R, A, B)
-    linkTriangles = findCellLinkTriangles(R, A, B)
-    linkTriangleAreas = abs.(area.(linkTriangles))
-    edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
-    trapeziumAreas = abs.(area.(edgeQuadrilaterals))
-    E = Diagonal(linkTriangleAreas)
-    Tₗ = Diagonal(((norm.(T)) .^ 2) ./ (2.0 .* trapeziumAreas))
-    Lₜ = (E \ Aᵀ) * Tₗ * A
+    Tⱼ = findCellLinkLengths(R, A, B)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = findEdgeQuadrilateralAreas(R, A, B)
+    E⁻¹ = Diagonal(1.0./Eₖ)
+    Tₗ = Diagonal((Tⱼ.^2)./Fⱼ)
+    Lₜ = E⁻¹*Aᵀ*Tₗ*A
     dropzeros!(Lₜ)
     return Lₜ
 end
 
+# Check topological versions 
+#!!!!!!!!!
+
 # Purely topological scalar Laplacian Lf without metric components 
 function topologicalLf(A, B)
-    I = size(B, 1)
     Bᵀ = Transpose(B)
     onesVec = ones(1, I)
-    boundaryEdges = abs.(onesVec * B)
-    H = Diagonal(cellAreas)
-    boundaryEdgesFactor = abs.(boundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
-    diagonalComponent = boundaryEdgesFactor'
-    Tₑ = Diagonal(diagonalComponent)
-    invH = inv(H)
-    Lf = invH * B * Tₑ * Bᵀ
+    b = Diagonal(abs.(findBoundaryEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
+    Lf = B * b * Bᵀ
     dropzeros!(Lf)
     return Lf
 end
 
 # Purely topological scalar Laplacian Lc without metric components 
 function topologicalLc(A, B)
-    I = size(B, 1)
     Bᵀ = Transpose(B)
     onesVec = ones(1, I)
-    boundaryEdges = abs.(onesVec * B)
-    boundaryEdgesFactor = abs.(boundaryEdges .- 1)      # =1 for internal vertices, =0 for boundary vertices
-    boundaryEdgesFactorMat = Diagonal(boundaryEdgesFactor[1, :])
-    Lc = B * boundaryEdgesFactorMat * Bᵀ
-    Lc = B * Bᵀ
-    dropzeros!(Lc)
-    return Lc
+    b = Diagonal(abs.(findBoundaryEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
+    Lf = B * b * Bᵀ
+    dropzeros!(Lf)
+    return Lf
 end
 
 # Purely topological scalar Laplacian Lv without metric components 
@@ -136,6 +114,8 @@ function topologicalLt(A, B)
     dropzeros!(Lₜ)
     return Lₜ
 end
+
+#!!!!!!!!!
 
 # Vector Laplacian
 function edgeLaplacianPrimal(R, A, B)
@@ -297,7 +277,7 @@ end #end module
 #     Ā = abs.(A)
 #     B̄ = abs.(B)
 #     C = B̄ * Ā .÷ 2
-#     cellAreas = findCellAreas(R, A, B)
+#     aᵢ = findCellAreas(R, A, B)
 #     edgeMidpointLinks = findEdgeMidpointLinks(R, A, B)
 #     boundaryVertices = Āᵀ * abs.(sum.(eachcol(B))) .÷ 2
 #     for k in findall(x->x!=0, boundaryVertices)
@@ -309,7 +289,7 @@ end #end module
 #     for k=1:K
 #         for i in findall(x->x!=0, C[:,k])
 #             for i′ in findall(x->x!=0, C[:,k])
-#                 L[i, i′] += (edgeMidpointLinks[i,k]⋅edgeMidpointLinks[i′,k])/(cellAreas[i]*vertexAreas[k])
+#                 L[i, i′] += (edgeMidpointLinks[i,k]⋅edgeMidpointLinks[i′,k])/(aᵢ[i]*vertexAreas[k])
 #             end
 #         end
 #     end
@@ -324,7 +304,7 @@ end #end module
     
 #     I = size(B,1); J = size(B,2); K = size(A,2)
 
-#     cellAreas = findCellAreas(R, A, B)
+#     aᵢ = findCellAreas(R, A, B)
     
 #     𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
 
@@ -346,7 +326,7 @@ end #end module
 #     for k=1:K
 #         for i in findall(x->x!=0, C[:,k])
 #             for i′ in findall(x->x!=0, C[:,k])
-#                 Lϕ[i] += (𝐬ᵢₖ[i,k]⋅𝐬ᵢₖ[i′,k])*ϕᵢ[i′]/(cellAreas[i]*αₖ[k])
+#                 Lϕ[i] += (𝐬ᵢₖ[i,k]⋅𝐬ᵢₖ[i′,k])*ϕᵢ[i′]/(aᵢ[i]*αₖ[k])
 #             end
 #         end
 #     end
