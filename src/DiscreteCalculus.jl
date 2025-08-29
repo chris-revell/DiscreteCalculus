@@ -35,6 +35,20 @@ export findCellEdgeCount
 export findBoundaryVertices
 export findBoundaryEdges
 export findBoundaryCells
+export findPerpendicularEdges
+
+export findĀ!
+export findB̄!
+export findC!
+export findAᵀ!
+export findĀᵀ!
+export findBᵀ!
+export findB̄ᵀ!
+export findCellEdgeCount!
+export findBoundaryVertices!
+export findBoundaryEdges!
+export findBoundaryCells!
+
 export senseCheck
 
 export findCellCentresOfMass
@@ -64,9 +78,13 @@ export cellNeighbourOrder
 export hNetwork
 
 export geometricLf
+export geometricLfHat
 export geometricLc
+export geometricLcHat
 export geometricLv
+export geometricLvHat
 export geometricLt
+export geometricLtHat
 export topologicalLf
 export topologicalLc
 export topologicalLv

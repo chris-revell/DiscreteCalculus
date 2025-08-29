@@ -23,17 +23,46 @@ using StaticArrays
 
 # Scalar Laplacian Lf with metric components 
 function geometricLf(R, A, B)
-    I = size(B, 1)
     Bᵀ = Transpose(B)
     aᵢ = findCellAreas(R, A, B)
     tⱼ = findEdgeLengths(R, A)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    jInternal = abs.(findBoundaryEdges(B).-1) # =1 for internal edges, =0 for boundary edges
-    Tₑ = Diagonal((jInternal.*((tⱼ .^ 2)./(Fⱼ)))) # Multiply by jInternal vector to set boundary vertex contributions to zero
-    H⁻¹ = Diagonal(1.0./aᵢ)
-    Lf = H⁻¹*B*Tₑ*Bᵀ
-    dropzeros!(Lf)
-    return Lf
+    jⁱ = abs.(findBoundaryEdges(B).-1) # =1 for internal edges, =0 for boundary edges
+    Tₑ = spdiagm((jⁱ.*((tⱼ .^ 2)./(Fⱼ)))) # Multiply by jⁱ vector to set boundary vertex contributions to zero
+    H⁻¹ = spdiagm(1.0./aᵢ)
+    L_ℱ = H⁻¹*B*Tₑ*Bᵀ
+    dropzeros!(L_ℱ)
+    return L_ℱ
+end
+
+
+function geometricLfHat(R, A, B)
+    J = size(A,1)
+    jⁿ = findPerpendicularEdges(A,B)
+    jᵖ = findBoundaryEdges(B)
+    jⁱ = ones(J).-jⁿ.-jᵖ
+
+    aᵢ = findCellAreas(R, A, B)
+    tⱼ = findEdgeLengths(R, A)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    Tₑ = spdiagm((tⱼ .^ 2)./(Fⱼ))
+    H⁻¹ = spdiagm(1.0./aᵢ)
+
+    Bⁿ = copy(B)
+    Bⁿ[:,jⁿ.==1].=0
+    dropzeros!(Bⁿ)
+    Bⁿᵀ = Transpose(Bⁿ)
+    Bⁱ = copy(B)
+    Bⁱ[:, jⁱ.==1].=0
+    dropzeros!(Bⁱ)
+    Bⁱᵀ = Transpose(Bⁱ)
+
+    Tₑⁿ = spdiagm(jⁿ.*(tⱼ .^ 2)./(Fⱼ))
+    Tₑi = spdiagm(jⁱ.*(tⱼ .^ 2)./(Fⱼ))
+
+    L̂_ℱ = H⁻¹*(Bⁿ*Tₑⁿ*Bⁿᵀ + Bⁱ*Tₑiⁱ*Bⁱᵀ)
+    dropzeros!(L̂_ℱ)
+    return L̂_ℱ
 end
 
 # Scalar Laplacian Lc with metric components 
@@ -42,12 +71,40 @@ function geometricLc(R, A, B)
     aᵢ = findCellAreas(R, A, B)
     Tⱼ = findCellLinkLengths(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    jInternal = abs.(findBoundaryEdges(B).-1) # =1 for internal edges, =0 for boundary edges
-    H⁻¹ = Diagonal(1.0./aᵢ)
-    Tₗ⁻¹ = Diagonal(jInternal.*Fⱼ./(Tⱼ.^2)) # Multiply by jInternal vector to set boundary vertex contributions to zero
-    Lc = H⁻¹*B*Tₗ⁻¹*Bᵀ
-    dropzeros!(Lc)
-    return Lc
+    jⁱ = abs.(findBoundaryEdges(B).-1) # =1 for internal edges, =0 for boundary edges
+    H⁻¹ = spdiagm(1.0./aᵢ)
+    Tₗ⁻¹ = spdiagm(jⁱ.*Fⱼ./(Tⱼ.^2)) # Multiply by jⁱ vector to set boundary vertex contributions to zero
+    L_𝒞 = H⁻¹*B*Tₗ⁻¹*Bᵀ
+    dropzeros!(L_𝒞)
+    return L_𝒞
+end
+
+function geometricLcHat(R, A, B)
+    J = size(A,1)
+    jⁿ = findPerpendicularEdges(A,B)
+    jᵖ = findBoundaryEdges(B)
+    jⁱ = ones(J).-jⁿ.-jᵖ
+
+    aᵢ = findCellAreas(R, A, B)
+    Tⱼ = findCellLinkLengths(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    H⁻¹ = spdiagm(1.0./aᵢ)
+
+    Bⁿ = copy(B)
+    Bⁿ[:,jⁿ.==1].=0
+    dropzeros!(Bⁿ)
+    Bⁿᵀ = Transpose(Bⁿ)
+    Bⁱ = copy(B)
+    Bⁱ[:, jⁱ.==1].=0
+    dropzeros!(Bⁱ)
+    Bⁱᵀ = Transpose(Bⁱ)
+
+    Tₗⁿ⁻¹ = spdiagm(jⁿ.*Fⱼ./(Tⱼ.^2))
+    Tₗⁱ⁻¹ = spdiagm(jⁱ.*Fⱼ./(Tⱼ.^2))
+    
+    L̂_𝒞 = H⁻¹*(Bⁿ*Tₗⁿ⁻¹*Bⁿᵀ + Bⁱ*Tₗⁱ⁻¹*Bⁱᵀ)
+    dropzeros!(L̂_𝒞)
+    return L̂_𝒞
 end
 
 # Scalar Laplacian Lv with metric components 
@@ -56,11 +113,42 @@ function geometricLv(R, A, B)
     tⱼ = findEdgeLengths(R, A)
     Eₖ = findCellLinkTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    E⁻¹ = Diagonal(1.0./Eⱼ)
-    Tₑ⁻¹ = Diagonal(Fⱼ./(tⱼ .^ 2))
-    Lᵥ = E⁻¹*Aᵀ*Tₑ⁻¹*A
+    E⁻¹ = spdiagm(1.0./Eₖ)
+    Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ .^ 2))
+    L_𝒱 = E⁻¹*Aᵀ*Tₑ⁻¹*A
     dropzeros!(L_𝒱)
     return L_𝒱
+end
+
+function geometricLvHat(R, A, B)
+    J = size(A,1)
+    K = size(A,2)
+    jⁿ = findPerpendicularEdges(A,B)
+    jᵖ = findBoundaryEdges(B)
+    jⁱ = ones(J).-jⁿ.-jᵖ
+    kᵖ = findBoundaryVertices(A,B)
+    kⁱ = ones(K).-kᵖ
+
+    tⱼ = findEdgeLengths(R, A)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    E⁻¹ = spdiagm(1.0./Eₖ)
+    
+    Aⁿⁱ = copy(A)
+    Aⁿⁱ[jⁿ.==1, kⁱ.==1].=0
+    dropzeros!(Aⁿⁱ)
+    Aⁿⁱᵀ = Transpose(Aⁿⁱ)
+    Aⁱⁱ = copy(A)
+    Aⁱⁱ[jⁱ.==1, kⁱ.==1].=0
+    dropzeros!(Aⁱⁱ)
+    Aⁱⁱᵀ = Transpose(Aⁱⁱ)
+
+    Tₑⁿ⁻¹ = spdiagm(jⁿ.*Fⱼ./(tⱼ .^ 2))
+    Tₑⁱ⁻¹ = spdiagm(jⁱ.*Fⱼ./(tⱼ .^ 2))
+
+    L̂_𝒱 = E⁻¹*(Aⁿⁱᵀ*Tₑⁿ⁻¹*Aⁿⁱ + Aⁱⁱᵀ*Tₑⁱ⁻¹*Aⁱⁱ)
+    dropzeros!(L̂_𝒱)
+    return L̂_𝒱
 end
 
 # Scalar Laplacian Lt with metric components 
@@ -69,36 +157,66 @@ function geometricLt(R, A, B)
     Tⱼ = findCellLinkLengths(R, A, B)
     Eₖ = findCellLinkTriangleAreas(R, A, B)
     Fⱼ = findEdgeQuadrilateralAreas(R, A, B)
-    E⁻¹ = Diagonal(1.0./Eₖ)
-    Tₗ = Diagonal((Tⱼ.^2)./Fⱼ)
-    Lₜ = E⁻¹*Aᵀ*Tₗ*A
-    dropzeros!(Lₜ)
-    return Lₜ
+    E⁻¹ = spdiagm(1.0./Eₖ)
+    Tₗ = spdiagm((Tⱼ.^2)./Fⱼ)
+    L_𝒯 = E⁻¹*Aᵀ*Tₗ*A
+    dropzeros!(L_𝒯)
+    return L_𝒯
+end
+
+function geometricLtHat(R, A, B)
+    J = size(A,1)
+    jⁿ = findPerpendicularEdges(A,B)
+    jᵖ = findBoundaryEdges(B)
+    jⁱ = ones(J).-jⁿ.-jᵖ
+    kᵖ = findBoundaryVertices(A,B)
+    kⁱ = ones(K).-kᵖ
+
+    Tⱼ = findCellLinkLengths(R, A, B)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = findEdgeQuadrilateralAreas(R, A, B)
+    E⁻¹ = spdiagm(1.0./Eₖ)
+    
+    Aⁿⁱ = copy(A)
+    Aⁿⁱ[jⁿ.==1, kⁱ.==1].=0
+    dropzeros!(Aⁿⁱ)
+    Aⁿⁱᵀ = Transpose(Aⁿⁱ)
+    Aⁱⁱ = copy(A)
+    Aⁱⁱ[jⁱ.==1, kⁱ.==1].=0
+    dropzeros!(Aⁱⁱ)
+    Aⁱⁱᵀ = Transpose(Aⁱⁱ)
+
+    Tₗⁿ⁻¹ = spdiagm(jⁿ.*(Tⱼ.^2)./Fⱼ)
+    Tₗⁱ⁻¹ = spdiagm(jⁱ.*(Tⱼ.^2)./Fⱼ)
+
+    L̂_𝒱 = E⁻¹*(Aⁿⁱᵀ*Tₑⁿ⁻¹*Aⁿⁱ + Aⁱⁱᵀ*Tₑⁱ⁻¹*Aⁱⁱ)
+
+    L̂_𝒯 = E⁻¹*(Aⁿⁱᵀ*Tₗⁿ*Aⁿⁱ + Aⁱⁱᵀ*Tₗⁱⁱ*Aⁱⁱ)
+
+    dropzeros!(L̂_𝒯)
+    return L̂_𝒯
 end
 
 # Check topological versions 
 #!!!!!!!!!
-
 # Purely topological scalar Laplacian Lf without metric components 
 function topologicalLf(A, B)
     Bᵀ = Transpose(B)
     onesVec = ones(1, I)
-    b = Diagonal(abs.(findBoundaryEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
+    b = spdiagm(abs.(findBoundaryEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
     Lf = B * b * Bᵀ
     dropzeros!(Lf)
     return Lf
 end
-
 # Purely topological scalar Laplacian Lc without metric components 
 function topologicalLc(A, B)
     Bᵀ = Transpose(B)
     onesVec = ones(1, I)
-    b = Diagonal(abs.(findBoundaryEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
+    b = spdiagm(abs.(findBoundaryEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
     Lf = B * b * Bᵀ
     dropzeros!(Lf)
     return Lf
 end
-
 # Purely topological scalar Laplacian Lv without metric components 
 function topologicalLv(A, B)
     Aᵀ = Transpose(A)
@@ -106,7 +224,6 @@ function topologicalLv(A, B)
     dropzeros!(Lᵥ)
     return Lᵥ
 end
-
 # Purely topological scalar Laplacian Lt without metric components 
 function topologicalLt(A, B)
     Aᵀ = Transpose(A)
@@ -114,7 +231,6 @@ function topologicalLt(A, B)
     dropzeros!(Lₜ)
     return Lₜ
 end
-
 #!!!!!!!!!
 
 # Vector Laplacian
@@ -131,10 +247,10 @@ function edgeLaplacianPrimal(R, A, B)
     Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ.^2))
     # boundaryEdgesFactor = abs.(findBoundaryEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
     # diagonalComponent = boundaryEdgesFactor'
-    # Tₑ = Diagonal(diagonalComponent)
-    Lprimal = A*E⁻¹*Aᵀ*Tₑ⁻¹ + Tₑ*Bᵀ*H⁻¹*B
-    dropzeros!(Lprimal)
-    return Lprimal
+    # Tₑ = spdiagm(diagonalComponent)
+    L_ℰ = A*E⁻¹*Aᵀ*Tₑ⁻¹ + Tₑ*Bᵀ*H⁻¹*B
+    dropzeros!(L_ℰ)
+    return L_ℰ
 end
    
 # Vector Laplacian
@@ -149,9 +265,9 @@ function edgeLaplacianDual(R, A, B)
     E⁻¹ = spdiagm(1.0./Eⱼ)
     Tₗ = spdiagm((Tⱼ.^2)./Fⱼ)
     Tₗ⁻¹ = spdiagm(Fⱼ./(Tⱼ.^2))
-    Ldual = Bᵀ*H⁻¹*B*Tₗ⁻¹ + Tₗ*A*E⁻¹*Aᵀ
-    dropzeros!(Ldual)
-    return Ldual
+    L_ℒ = Bᵀ*H⁻¹*B*Tₗ⁻¹ + Tₗ*A*E⁻¹*Aᵀ
+    dropzeros!(L_ℒ)
+    return L_ℒ
 end
 
 # Proc Roy Soc A20; 
@@ -178,7 +294,7 @@ function cotan𝐋(R, A, B)
     aᵢ = findCellAreas(R, A, B)
     𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
     Dₖ = findEdgeMidpointLinkVertexAreas(R, A, B)
-    # 𝐪ₖ = eachcol(Diagonal(ones(Int64, K)))
+    # 𝐪ₖ = eachcol(spdiagm(ones(Int64, K)))
     # tmp = [outerProd(𝐪ₖ[k],𝐪ₖ[k′]).*(outerProd(𝐬ᵢₖ[i,k], 𝐬ᵢₖ[i,k′])/Dₖ[k] + outerProd(ϵᵢ*𝐬ᵢₖ[i,k], ϵᵢ*𝐬ᵢₖ[i,k′])/Dₖ[k])/aᵢ[i] for i=1:I, k=1:K, k′=1:K]
     # 𝐋 = sparse(sum(tmp, dims=1))
     tmp = [(outerProd(𝐬ᵢₖ[i,k], 𝐬ᵢₖ[i,k′])/Dₖ[k] + outerProd(ϵᵢ*𝐬ᵢₖ[i,k], ϵᵢ*𝐬ᵢₖ[i,k′])/Dₖ[k])/aᵢ[i] for i=1:I, k=1:K, k′=1:K]
@@ -229,9 +345,13 @@ end
 
 
 export geometricLf
+export geometricLfHat
 export geometricLc
+export geometricLcHat
 export geometricLv
+export geometricLvHat
 export geometricLt
+export geometricLtHat
 export topologicalLf
 export topologicalLc
 export topologicalLv

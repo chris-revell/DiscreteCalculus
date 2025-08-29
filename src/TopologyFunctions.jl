@@ -36,6 +36,15 @@ function findBoundaryCells(B)
     boundaryCells[boundaryCellIndices] .= 1
     return boundaryCells
 end
+function findPerpendicularEdges(A, B)
+    kₚ = findBoundaryVertices(A, B).==1
+    jₚ = findBoundaryEdges(B).==1
+    tmp = findall(x->x!=0, A[:,kₚ])
+    tmp2 = unique(getindex.(tmp,1))
+    jₙinds = setdiff(tmp2, findall(x->x, jₚ))
+    jₙ = zeros(size(A,1))
+    jₙ[jₙinds] .= 1
+end
 
 # Mutating versions 
 findĀ!(A, Ā) = Ā.=abs.(A)
@@ -80,6 +89,7 @@ export findCellEdgeCount
 export findBoundaryVertices
 export findBoundaryEdges
 export findBoundaryCells
+export findPerpendicularEdges
 
 export findĀ!
 export findB̄!
