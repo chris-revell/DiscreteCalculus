@@ -32,10 +32,10 @@ export findĀᵀ
 export findBᵀ
 export findB̄ᵀ
 export findCellEdgeCount
-export findBoundaryVertices
-export findBoundaryEdges
-export findBoundaryCells
-export findPerpendicularEdges
+export findPeripheralVertices
+export findPeripheralEdges
+export findPeripheralCells
+export findNormalEdges
 
 export findĀ!
 export findB̄!
@@ -45,9 +45,9 @@ export findĀᵀ!
 export findBᵀ!
 export findB̄ᵀ!
 export findCellEdgeCount!
-export findBoundaryVertices!
-export findBoundaryEdges!
-export findBoundaryCells!
+export findPeripheralVertices!
+export findPeripheralEdges!
+export findPeripheralCells!
 
 export senseCheck
 
@@ -79,12 +79,16 @@ export hNetwork
 
 export geometricLf
 export geometricLfHat
+export geometricLfHatReduced
 export geometricLc
 export geometricLcHat
+export geometricLcHatReduced
 export geometricLv
 export geometricLvHat
+export geometricLvHatReduced
 export geometricLt
 export geometricLtHat
+export geometricLtHatReduced
 export topologicalLf
 export topologicalLc
 export topologicalLv

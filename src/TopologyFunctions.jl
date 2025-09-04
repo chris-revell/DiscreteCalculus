@@ -27,23 +27,24 @@ findĀᵀ(A) = abs.(Transpose(A))
 findBᵀ(B) = Transpose(B)
 findB̄ᵀ(B) = abs.(Transpose(B))
 findCellEdgeCount(B) = sum.(eachrow(abs.(B))) # Zᵢ
-findBoundaryVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
-findBoundaryEdges(B) = abs.([sum(x) for x in eachcol(B)]) # qⱼᵇ = Bᵀ𝟙ᵢ
-function findBoundaryCells(B)
-    boundaryEdges = findBoundaryEdges(B)
+findPeripheralVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
+findPeripheralEdges(B) = abs.([sum(x) for x in eachcol(B)]) # qⱼᵇ = Bᵀ𝟙ᵢ
+function findPeripheralCells(B)
+    boundaryEdges = findPeripheralEdges(B)
     boundaryCellIndices = findnz(B[:, boundaryEdges.==1])[1]
     boundaryCells = zeros(Int64, size(B,1))
     boundaryCells[boundaryCellIndices] .= 1
     return boundaryCells
 end
-function findPerpendicularEdges(A, B)
-    kₚ = findBoundaryVertices(A, B).==1
-    jₚ = findBoundaryEdges(B).==1
-    tmp = findall(x->x!=0, A[:,kₚ])
+function findNormalEdges(A, B)
+    kᵖ = findPeripheralVertices(A, B).==1
+    jᵖ = findPeripheralEdges(B).==1
+    tmp = findall(x->x!=0, A[:,kᵖ])
     tmp2 = unique(getindex.(tmp,1))
-    jₙinds = setdiff(tmp2, findall(x->x, jₚ))
-    jₙ = zeros(size(A,1))
-    jₙ[jₙinds] .= 1
+    jⁿinds = setdiff(tmp2, findall(x->x, jᵖ))
+    jⁿ = zeros(size(A,1))
+    jⁿ[jⁿinds] .= 1
+    return jⁿ
 end
 
 # Mutating versions 
@@ -55,11 +56,11 @@ findĀᵀ!(A, Āᵀ) = Āᵀ.=abs.(Transpose(A))
 findBᵀ!(B, Bᵀ) = Bᵀ.=Transpose(B)
 findB̄ᵀ!(B, B̄ᵀ) = B̄ᵀ.=abs.(Transpose(B))
 findCellEdgeCount!(B, Zᵢ) = Zᵢ.=sum.(eachrow(abs.(B))) # Zᵢ
-findBoundaryVertices!(A, B, bₖ) = bₖ.=abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
-findBoundaryEdges!(B, bⱼ) = bⱼ.=abs.([sum(x) for x in eachcol(B)])
+findPeripheralVertices!(A, B, bₖ) = bₖ.=abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
+findPeripheralEdges!(B, bⱼ) = bⱼ.=abs.([sum(x) for x in eachcol(B)])
 
-function findBoundaryCells!(B, bᵢ)
-    boundaryEdges = findBoundaryEdges(B)
+function findPeripheralCells!(B, bᵢ)
+    boundaryEdges = findPeripheralEdges(B)
     boundaryCellIndices = findnz(B[:, boundaryEdges.==1])[1]
     bᵢ .= zeros(Int64, size(B,1))
     bᵢ[boundaryCellIndices] .= 1
@@ -86,10 +87,10 @@ export findĀᵀ
 export findBᵀ
 export findB̄ᵀ
 export findCellEdgeCount
-export findBoundaryVertices
-export findBoundaryEdges
-export findBoundaryCells
-export findPerpendicularEdges
+export findPeripheralVertices
+export findPeripheralEdges
+export findPeripheralCells
+export findNormalEdges
 
 export findĀ!
 export findB̄!
@@ -99,9 +100,9 @@ export findĀᵀ!
 export findBᵀ!
 export findB̄ᵀ!
 export findCellEdgeCount!
-export findBoundaryVertices!
-export findBoundaryEdges!
-export findBoundaryCells!
+export findPeripheralVertices!
+export findPeripheralEdges!
+export findPeripheralCells!
 
 export senseCheck
 

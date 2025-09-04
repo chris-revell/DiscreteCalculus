@@ -118,8 +118,8 @@ end
 # by the lines connecting adjacent cell centroids. In the case of peripheral vertices, the function instead forms 
 # a polygon around the vertex from adjacent cell centroids and peripheral edge midpoints.
 function findCellLinkTriangles(R, A, B)
-    boundaryVertices = findBoundaryVertices(A, B)
-    boundaryEdges = findBoundaryEdges(B)
+    boundaryVertices = findPeripheralVertices(A, B)
+    boundaryEdges = findPeripheralEdges(B)
     C = findC(A, B)
     𝐑ᵢ = findCellCentresOfMass(R, A, B)
     𝐜ⱼ = findEdgeMidpoints(R, A)
@@ -147,7 +147,7 @@ function findEdgeLinkIntersections(R, A, B)
     J = size(B,2)
     𝐭ⱼ = findEdgeTangents(R, A)
     𝐓ⱼ = findCellLinks(R, A, B)
-    boundaryEdges = findBoundaryEdges(B).==1
+    boundaryEdges = findPeripheralEdges(B).==1
     Rᵢ = findCellCentresOfMass(R, A, B)
     𝐛ⱼ = fill(SVector{2,Float64}(zeros(2)), J)
     for j = 1:J

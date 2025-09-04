@@ -99,7 +99,7 @@ function divᶜsuppress(R, A, B, 𝐛)
     T = findCellLinkLengths(R, A, B)
     𝐓 = findCellLinks(R, A, B)
     a = findCellAreas(R, A, B)
-    b = abs.(findBoundaryEdges(B).-1) # Indicator function 
+    b = abs.(findPeripheralEdges(B).-1) # Indicator function 
     tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*𝐓[j]⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
     return dropdims(sum(tmp, dims=2), dims=2)
 end 
@@ -119,7 +119,7 @@ function divᵛsuppress(R, A, B, 𝐛)
     t = findEdgeLengths(R, A)
     𝐭 = findEdgeTangents(R, A)
     E = findCellLinkTriangleAreas(R, A, B)
-    b = abs.(findBoundaryVertices(A, B) .-1) # Indicator function 
+    b = abs.(findPeripheralVertices(A, B) .-1) # Indicator function 
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*b[k]*𝐭[j]⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
@@ -178,7 +178,7 @@ function codivᶜsuppress(R, A, B, 𝐛)
     𝐓 = findCellLinks(R, A, B)
     T = findCellLinkLengths(R, A, B)
     a = findCellAreas(R, A, B)
-    b = abs.(findBoundaryEdges(B).-1) # Indicator function 
+    b = abs.(findPeripheralEdges(B).-1) # Indicator function 
     tmp = [-B[i,j]*(F[j]/(T[j]^2))*b[j]*(ϵₖ*𝐓[j])⋅𝐛[j]/a[i] for i=1:size(B,1), j=1:size(B,2)]
     return dropdims(sum(tmp, dims=2), dims=2)
 end
@@ -207,7 +207,7 @@ function codivᵛsuppress(R, A, B, 𝐛)
     ])
     𝐭 = findEdgeTangents(R, A)
     t = findEdgeLengths(R, A)
-    b = abs.(findBoundaryVertices(A, B) .-1) # Indicator function 
+    b = abs.(findPeripheralVertices(A, B) .-1) # Indicator function 
     tmp = [-A[j,k]*(F[j]/(t[j]^2))*b[k]*(ϵᵢ*𝐭[j])⋅𝐛[j]/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
