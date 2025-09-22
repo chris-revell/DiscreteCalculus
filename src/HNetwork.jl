@@ -41,8 +41,8 @@ function hNetwork(R, A, B, F)
     I = size(B,1)
     J = size(B,2)
     K = size(A,2)
-    boundaryEdges = findPeripheralEdges(B)
-    boundaryCells = findnz(B[:, boundaryEdges.==1])[1]
+    peripheralEdges = findPeripheralEdges(B)
+    peripheralCells = findnz(B[:, peripheralEdges.==1])[1]
     cellVertexOrders  = fill(CircularVector(Int64[]), I)
     cellEdgeOrders    = fill(CircularVector(Int64[]), I)
     for i = 1:I
@@ -56,8 +56,8 @@ function hNetwork(R, A, B, F)
     B̄ = abs.(B)
 
     # Ensure we don't start with a boundary cell
-    startCell = rand(collect(1:I)[Not(boundaryCells)])
-    # startCell = 1 
+    # startCell = rand(collect(1:I)[Not(peripheralCells)])
+    startCell = 1 
     traversedCells = Int64[]
     traversedEdges = Int64[]
     cellNeighbourMatrix = B*transpose(B)

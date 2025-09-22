@@ -119,7 +119,7 @@ end
 # a polygon around the vertex from adjacent cell centroids and peripheral edge midpoints.
 function findCellLinkTriangles(R, A, B)
     boundaryVertices = findPeripheralVertices(A, B)
-    boundaryEdges = findPeripheralEdges(B)
+    peripheralEdges = findPeripheralEdges(B)
     C = findC(A, B)
     𝐑ᵢ = findCellCentresOfMass(R, A, B)
     𝐜ⱼ = findEdgeMidpoints(R, A)
@@ -132,7 +132,7 @@ function findCellLinkTriangles(R, A, B)
             push!(linkTriangles, Point{2,Float64}.(𝐑ᵢ[k_is]))
         else
             # If this vertex is at the system boundary, we must form a more complex kite from surrounding cell centres and midpoints of surrounding boundary edges
-            k_js = [j for j in findall(x -> x != 0, A[:, k]) if boundaryEdges[j]==1]
+            k_js = [j for j in findall(x -> x != 0, A[:, k]) if peripheralEdges[j]==1]
             k_is = [findall(x->x!=0, B[:, j])[1] for j in k_js]
             kiteVertices = [R[k], 𝐜ⱼ[k_js[1]], 𝐑ᵢ[k_is]..., 𝐜ⱼ[k_js[2]]]
             push!(linkTriangles, Point{2,Float64}.(kiteVertices))
@@ -147,7 +147,7 @@ function findEdgeLinkIntersections(R, A, B)
     J = size(B,2)
     𝐭ⱼ = findEdgeTangents(R, A)
     𝐓ⱼ = findCellLinks(R, A, B)
-    boundaryEdges = findPeripheralEdges(B).==1
+    peripheralEdges = findPeripheralEdges(B).==1
     Rᵢ = findCellCentresOfMass(R, A, B)
     𝐛ⱼ = fill(SVector{2,Float64}(zeros(2)), J)
     for j = 1:J

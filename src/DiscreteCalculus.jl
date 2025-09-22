@@ -23,7 +23,6 @@ using FromFile
 @from "DifferentialOperators.jl" using DifferentialOperators
 @from "InnerOuterProduct.jl" using InnerOuterProduct
 
-export topologyMatrices
 export findĀ
 export findB̄
 export findC
@@ -31,6 +30,8 @@ export findAᵀ
 export findĀᵀ
 export findBᵀ
 export findB̄ᵀ
+export findÂ
+export findB̂
 export findCellEdgeCount
 export findPeripheralVertices
 export findPeripheralEdges
@@ -48,6 +49,9 @@ export findCellEdgeCount!
 export findPeripheralVertices!
 export findPeripheralEdges!
 export findPeripheralCells!
+export findNormalEdges!
+
+export senseCheck
 
 export senseCheck
 
@@ -94,7 +98,9 @@ export topologicalLc
 export topologicalLv
 export topologicalLt
 export edgeLaplacianPrimal
+export edgeLaplacianPrimalHat
 export edgeLaplacianDual
+export edgeLaplacianDualHat
 
 export edgeMidpointL
 export edgeMidpointLNeumann

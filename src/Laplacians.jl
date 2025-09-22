@@ -27,43 +27,11 @@ function geometricLf(R, A, B)
     aᵢ = findCellAreas(R, A, B)
     tⱼ = findEdgeLengths(R, A)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    jⁱ = abs.(findPeripheralEdges(B).-1) # =1 for internal edges, =0 for boundary edges
-    Tₑ = spdiagm((jⁱ.*((tⱼ .^ 2)./(Fⱼ)))) # Multiply by jⁱ vector to set boundary vertex contributions to zero
+    Tₑ = spdiagm((tⱼ .^ 2)./Fⱼ)
     H⁻¹ = spdiagm(1.0./aᵢ)
     L_ℱ = H⁻¹*B*Tₑ*Bᵀ
     dropzeros!(L_ℱ)
     return L_ℱ
-end
-
-
-function geometricLfHat(R, A, B)
-    J = size(A,1)
-    jⁿ = findNormalEdges(A,B)
-    jᵖ = findPeripheralEdges(B)
-    jⁱ = ones(J).-jⁿ.-jᵖ
-
-    aᵢ = findCellAreas(R, A, B)
-    tⱼ = findEdgeLengths(R, A)
-    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    Tₑ = spdiagm((tⱼ .^ 2)./(Fⱼ))
-    H⁻¹ = spdiagm(1.0./aᵢ)
-
-    Bⁿ = copy(B)
-    Bⁿ[:,jⁿ.==0].=0
-    dropzeros!(Bⁿ)
-    Bⁿᵀ = Transpose(Bⁿ)
-    Bⁱ = copy(B)
-    Bⁱ[:, jⁱ.==0].=0
-    dropzeros!(Bⁱ)
-    Bⁱᵀ = Transpose(Bⁱ)
-
-    Tₑⁿ = spdiagm(jⁿ.*(tⱼ .^ 2)./(Fⱼ))
-    Tₑⁱ = spdiagm(jⁱ.*(tⱼ .^ 2)./(Fⱼ))
-
-    L̂_ℱ = H⁻¹*(Bⁿ*Tₑⁿ*Bⁿᵀ + Bⁱ*Tₑⁱ*Bⁱᵀ)
-
-    dropzeros!(L̂_ℱ)
-    return L̂_ℱ
 end
 
 function geometricLfHatReduced(R, A, B)
@@ -98,40 +66,11 @@ function geometricLc(R, A, B)
     aᵢ = findCellAreas(R, A, B)
     Tⱼ = findCellLinkLengths(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    jⁱ = abs.(findPeripheralEdges(B).-1) # =1 for internal edges, =0 for boundary edges
     H⁻¹ = spdiagm(1.0./aᵢ)
-    Tₗ⁻¹ = spdiagm(jⁱ.*Fⱼ./(Tⱼ.^2)) # Multiply by jⁱ vector to set boundary vertex contributions to zero
+    Tₗ⁻¹ = spdiagm(Fⱼ./(Tⱼ.^2))
     L_𝒞 = H⁻¹*B*Tₗ⁻¹*Bᵀ
     dropzeros!(L_𝒞)
     return L_𝒞
-end
-
-function geometricLcHat(R, A, B)
-    J = size(A,1)
-    jⁿ = findNormalEdges(A,B)
-    jᵖ = findPeripheralEdges(B)
-    jⁱ = ones(J).-jⁿ.-jᵖ
-
-    aᵢ = findCellAreas(R, A, B)
-    Tⱼ = findCellLinkLengths(R, A, B)
-    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    H⁻¹ = spdiagm(1.0./aᵢ)
-
-    Bⁿ = copy(B)
-    Bⁿ[:,jⁿ.==0].=0
-    dropzeros!(Bⁿ)
-    Bⁿᵀ = Transpose(Bⁿ)
-    Bⁱ = copy(B)
-    Bⁱ[:, jⁱ.==0].=0
-    dropzeros!(Bⁱ)
-    Bⁱᵀ = Transpose(Bⁱ)
-
-    Tₗⁿ⁻¹ = spdiagm(jⁿ.*Fⱼ./(Tⱼ.^2))
-    Tₗⁱ⁻¹ = spdiagm(jⁱ.*Fⱼ./(Tⱼ.^2))
-    
-    L̂_𝒞 = H⁻¹*(Bⁿ*Tₗⁿ⁻¹*Bⁿᵀ + Bⁱ*Tₗⁱ⁻¹*Bⁱᵀ)
-    dropzeros!(L̂_𝒞)
-    return L̂_𝒞
 end
 
 function geometricLcHatReduced(R, A, B)
@@ -171,39 +110,6 @@ function geometricLv(R, A, B)
     L_𝒱 = E⁻¹*Aᵀ*Tₑ⁻¹*A
     dropzeros!(L_𝒱)
     return L_𝒱
-end
-
-function geometricLvHat(R, A, B)
-    J = size(A,1)
-    K = size(A,2)
-    jⁿ = findNormalEdges(A,B)
-    jᵖ = findPeripheralEdges(B)
-    jⁱ = ones(J).-jⁿ.-jᵖ
-    kᵖ = findPeripheralVertices(A,B)
-    kⁱ = ones(K).-kᵖ
-
-    tⱼ = findEdgeLengths(R, A)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
-    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
-    E⁻¹ = spdiagm(1.0./Eₖ)
-    
-    Aⁿⁱ = copy(A)
-    Aⁿⁱ[jⁿ.==0, :].=0
-    Aⁿⁱ[:, kⁱ.==0].=0
-    dropzeros!(Aⁿⁱ)
-    Aⁿⁱᵀ = Transpose(Aⁿⁱ)
-    Aⁱⁱ = copy(A)
-    Aⁱⁱ[jⁱ.==0, :].=0
-    Aⁱⁱ[:, kⁱ.==0].=0
-    dropzeros!(Aⁱⁱ)
-    Aⁱⁱᵀ = Transpose(Aⁱⁱ)
-
-    Tₑⁿ⁻¹ = spdiagm(jⁿ.*Fⱼ./(tⱼ .^ 2))
-    Tₑⁱ⁻¹ = spdiagm(jⁱ.*Fⱼ./(tⱼ .^ 2))
-
-    L̂_𝒱 = E⁻¹*(Aⁿⁱᵀ*Tₑⁿ⁻¹*Aⁿⁱ + Aⁱⁱᵀ*Tₑⁱ⁻¹*Aⁱⁱ)
-    dropzeros!(L̂_𝒱)
-    return L̂_𝒱
 end
 
 function geometricLvHatReduced(R, A, B)
@@ -246,39 +152,6 @@ function geometricLt(R, A, B)
     return L_𝒯
 end
 
-function geometricLtHat(R, A, B)
-    J = size(A,1)
-    K = size(A,2)
-    jⁿ = findNormalEdges(A,B)
-    jᵖ = findPeripheralEdges(B)
-    jⁱ = ones(J).-jⁿ.-jᵖ
-    kᵖ = findPeripheralVertices(A,B)
-    kⁱ = ones(K).-kᵖ
-
-    Tⱼ = findCellLinkLengths(R, A, B)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
-    Fⱼ = findEdgeQuadrilateralAreas(R, A, B)
-    E⁻¹ = spdiagm(1.0./Eₖ)
-    
-    Aⁿⁱ = copy(A)
-    Aⁿⁱ[jⁿ.==0, :].=0
-    Aⁿⁱ[:, kⁱ.==0].=0
-    dropzeros!(Aⁿⁱ)
-    Aⁿⁱᵀ = Transpose(Aⁿⁱ)
-    Aⁱⁱ = copy(A)
-    Aⁱⁱ[jⁱ.==0, :].=0
-    Aⁱⁱ[:, kⁱ.==0].=0
-    dropzeros!(Aⁱⁱ)
-    Aⁱⁱᵀ = Transpose(Aⁱⁱ)
-
-    Tₗⁿ = spdiagm(jⁿ.*(Tⱼ.^2)./Fⱼ)
-    Tₗⁱ = spdiagm(jⁱ.*(Tⱼ.^2)./Fⱼ)
-
-    L̂_𝒯 = E⁻¹*(Aⁿⁱᵀ*Tₗⁿ*Aⁿⁱ + Aⁱⁱᵀ*Tₗⁱ*Aⁱⁱ)
-    dropzeros!(L̂_𝒯)
-    return L̂_𝒯
-end
-
 function geometricLtHatReduced(R, A, B)
     J = size(A,1)
     K = size(A,2)
@@ -307,14 +180,13 @@ function geometricLtHatReduced(R, A, B)
     return L̂_𝒯, collect(1:K)[kⁱ.==1]
 end
 
-# Check topological versions 
-#!!!!!!!!!
 # Purely topological scalar Laplacian Lf without metric components 
 function topologicalLf(A, B)
     Bᵀ = Transpose(B)
     onesVec = ones(1, I)
-    b = spdiagm(abs.(findPeripheralEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
-    Lf = B * b * Bᵀ
+    # b = spdiagm(abs.(findPeripheralEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
+    # Lf = B * b * Bᵀ
+    Lf = B * Bᵀ
     dropzeros!(Lf)
     return Lf
 end
@@ -322,8 +194,9 @@ end
 function topologicalLc(A, B)
     Bᵀ = Transpose(B)
     onesVec = ones(1, I)
-    b = spdiagm(abs.(findPeripheralEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
-    Lf = B * b * Bᵀ
+    # b = spdiagm(abs.(findPeripheralEdges(B) .- 1)) # =1 for internal vertices, =0 for boundary vertices
+    # Lf = B * b * Bᵀ
+    Lf = B * Bᵀ
     dropzeros!(Lf)
     return Lf
 end
@@ -341,41 +214,88 @@ function topologicalLt(A, B)
     dropzeros!(Lₜ)
     return Lₜ
 end
-#!!!!!!!!!
 
-# Vector Laplacian
+# Vector Laplacian \mathsf{L}_{\mathcal{E}}
 function edgeLaplacianPrimal(R, A, B)
     aᵢ = findCellAreas(R, A, B)
-    Eⱼ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     tⱼ = findEdgeLengths(R, A)
     Aᵀ = transpose(A)
     Bᵀ = transpose(B)
     H⁻¹ = spdiagm(1.0./aᵢ)
-    E⁻¹ = spdiagm(1.0./Eⱼ)
+    E⁻¹ = spdiagm(1.0./Eₖ)
     Tₑ = spdiagm((tⱼ.^2)./Fⱼ)
     Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ.^2))
-    # boundaryEdgesFactor = abs.(findPeripheralEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
-    # diagonalComponent = boundaryEdgesFactor'
+    # peripheralEdgesFactor = abs.(findPeripheralEdges .- 1)# =1 for internal vertices, =0 for boundary vertices
+    # diagonalComponent = peripheralEdgesFactor'
     # Tₑ = spdiagm(diagonalComponent)
     L_ℰ = A*E⁻¹*Aᵀ*Tₑ⁻¹ + Tₑ*Bᵀ*H⁻¹*B
     dropzeros!(L_ℰ)
     return L_ℰ
 end
-   
-# Vector Laplacian
+
+# Vector Laplacian \mathsf{L}_{\mathcal{E}}
+function edgeLaplacianPrimalHat(R, A, B)
+    aᵢ = findCellAreas(R, A, B)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    tⱼ = findEdgeLengths(R, A)
+    H⁻¹ = spdiagm(1.0./aᵢ)
+    
+    jᵖ = findPeripheralEdges(B)
+    kᵖ = findPeripheralVertices(A,B)
+    kⁱ = 1 .-kᵖ
+    Â = findÂ(A, B)
+    Âᵀ = Transpose(Â)
+    B̂ = findB̂(A, B)
+    B̂ᵀ = Transpose(B̂)
+    T̂ₑ = spdiagm((tⱼ[jᵖ.==0].^2)./Fⱼ[jᵖ.==0])
+    T̂ₑ⁻¹ = spdiagm(Fⱼ[jᵖ.==0]./(tⱼ[jᵖ.==0].^2))
+    Ê⁻¹ = spdiagm(1.0./Eₖ[kⁱ.==1])
+    
+    L_ℰ = Â*Ê⁻¹*Âᵀ*T̂ₑ⁻¹ + T̂ₑ*B̂ᵀ*H⁻¹*B̂
+    dropzeros!(L_ℰ)
+    return L_ℰ
+end
+
+# Vector Laplacian \mathsf{L}_{\mathcal{L}}
 function edgeLaplacianDual(R, A, B)
     aᵢ = findCellAreas(R, A, B)
-    Eⱼ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     Tⱼ = findCellLinkLengths(R, A, B)
     Aᵀ = transpose(A)
     Bᵀ = transpose(B)
     H⁻¹ = spdiagm(1.0./aᵢ)
-    E⁻¹ = spdiagm(1.0./Eⱼ)
+    E⁻¹ = spdiagm(1.0./Eₖ)
     Tₗ = spdiagm((Tⱼ.^2)./Fⱼ)
     Tₗ⁻¹ = spdiagm(Fⱼ./(Tⱼ.^2))
     L_ℒ = Bᵀ*H⁻¹*B*Tₗ⁻¹ + Tₗ*A*E⁻¹*Aᵀ
+    dropzeros!(L_ℒ)
+    return L_ℒ
+end
+
+# Vector Laplacian \mathsf{L}_{\mathcal{L}}
+function edgeLaplacianDualHat(R, A, B)
+    aᵢ = findCellAreas(R, A, B)
+    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+    Tⱼ = findCellLinkLengths(R, A, B)
+    H⁻¹ = spdiagm(1.0./aᵢ)
+
+    jᵖ = findPeripheralEdges(B)
+    kᵖ = findPeripheralVertices(A,B)
+    kⁱ = 1 .-kᵖ
+    Â = findÂ(A, B)
+    Âᵀ = Transpose(Â)
+    B̂ = findB̂(A, B)
+    B̂ᵀ = Transpose(B̂)
+    T̂ₗ = spdiagm((Tⱼ[jᵖ.==0].^2)./Fⱼ[jᵖ.==0]) 
+    T̂ₗ⁻¹ = spdiagm(Fⱼ[jᵖ.==0]./(Tⱼ[jᵖ.==0].^2)) 
+    Ê⁻¹ = spdiagm(1.0./Eₖ[kⁱ.==1])
+
+    L_ℒ = B̂ᵀ*H⁻¹*B̂*T̂ₗ⁻¹ + T̂ₗ*Â*Ê⁻¹*Âᵀ
     dropzeros!(L_ℒ)
     return L_ℒ
 end
@@ -471,7 +391,9 @@ export topologicalLc
 export topologicalLv
 export topologicalLt
 export edgeLaplacianPrimal
+export edgeLaplacianPrimalHat
 export edgeLaplacianDual
+export edgeLaplacianDualHat
 
 export cotanL
 export cotan𝐋
@@ -565,4 +487,128 @@ end #end module
 #     end
     
 #     return Lϕ
+# end
+
+# function geometricLfHat(R, A, B)
+#     J = size(A,1)
+#     jⁿ = findNormalEdges(A,B)
+#     jᵖ = findPeripheralEdges(B)
+#     jⁱ = ones(J).-jⁿ.-jᵖ
+
+#     aᵢ = findCellAreas(R, A, B)
+#     tⱼ = findEdgeLengths(R, A)
+#     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+#     Tₑ = spdiagm((tⱼ .^ 2)./(Fⱼ))
+#     H⁻¹ = spdiagm(1.0./aᵢ)
+
+#     Bⁿ = copy(B)
+#     Bⁿ[:,jⁿ.==0].=0
+#     dropzeros!(Bⁿ)
+#     Bⁿᵀ = Transpose(Bⁿ)
+#     Bⁱ = copy(B)
+#     Bⁱ[:, jⁱ.==0].=0
+#     dropzeros!(Bⁱ)
+#     Bⁱᵀ = Transpose(Bⁱ)
+
+#     Tₑⁿ = spdiagm(jⁿ.*(tⱼ .^ 2)./(Fⱼ))
+#     Tₑⁱ = spdiagm(jⁱ.*(tⱼ .^ 2)./(Fⱼ))
+
+#     L̂_ℱ = H⁻¹*(Bⁿ*Tₑⁿ*Bⁿᵀ + Bⁱ*Tₑⁱ*Bⁱᵀ)
+
+#     dropzeros!(L̂_ℱ)
+#     return L̂_ℱ
+# end
+
+# function geometricLcHat(R, A, B)
+#     J = size(A,1)
+#     jⁿ = findNormalEdges(A,B)
+#     jᵖ = findPeripheralEdges(B)
+#     jⁱ = ones(J).-jⁿ.-jᵖ
+
+#     aᵢ = findCellAreas(R, A, B)
+#     Tⱼ = findCellLinkLengths(R, A, B)
+#     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+#     H⁻¹ = spdiagm(1.0./aᵢ)
+
+#     Bⁿ = copy(B)
+#     Bⁿ[:,jⁿ.==0].=0
+#     dropzeros!(Bⁿ)
+#     Bⁿᵀ = Transpose(Bⁿ)
+#     Bⁱ = copy(B)
+#     Bⁱ[:, jⁱ.==0].=0
+#     dropzeros!(Bⁱ)
+#     Bⁱᵀ = Transpose(Bⁱ)
+
+#     Tₗⁿ⁻¹ = spdiagm(jⁿ.*Fⱼ./(Tⱼ.^2))
+#     Tₗⁱ⁻¹ = spdiagm(jⁱ.*Fⱼ./(Tⱼ.^2))
+    
+#     L̂_𝒞 = H⁻¹*(Bⁿ*Tₗⁿ⁻¹*Bⁿᵀ + Bⁱ*Tₗⁱ⁻¹*Bⁱᵀ)
+#     dropzeros!(L̂_𝒞)
+#     return L̂_𝒞
+# end
+
+# function geometricLvHat(R, A, B)
+#     J = size(A,1)
+#     K = size(A,2)
+#     jⁿ = findNormalEdges(A,B)
+#     jᵖ = findPeripheralEdges(B)
+#     jⁱ = ones(J).-jⁿ.-jᵖ
+#     kᵖ = findPeripheralVertices(A,B)
+#     kⁱ = ones(K).-kᵖ
+
+#     tⱼ = findEdgeLengths(R, A)
+#     Eₖ = findCellLinkTriangleAreas(R, A, B)
+#     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
+#     E⁻¹ = spdiagm(1.0./Eₖ)
+    
+#     Aⁿⁱ = copy(A)
+#     Aⁿⁱ[jⁿ.==0, :].=0
+#     Aⁿⁱ[:, kⁱ.==0].=0
+#     dropzeros!(Aⁿⁱ)
+#     Aⁿⁱᵀ = Transpose(Aⁿⁱ)
+#     Aⁱⁱ = copy(A)
+#     Aⁱⁱ[jⁱ.==0, :].=0
+#     Aⁱⁱ[:, kⁱ.==0].=0
+#     dropzeros!(Aⁱⁱ)
+#     Aⁱⁱᵀ = Transpose(Aⁱⁱ)
+
+#     Tₑⁿ⁻¹ = spdiagm(jⁿ.*Fⱼ./(tⱼ .^ 2))
+#     Tₑⁱ⁻¹ = spdiagm(jⁱ.*Fⱼ./(tⱼ .^ 2))
+
+#     L̂_𝒱 = E⁻¹*(Aⁿⁱᵀ*Tₑⁿ⁻¹*Aⁿⁱ + Aⁱⁱᵀ*Tₑⁱ⁻¹*Aⁱⁱ)
+#     dropzeros!(L̂_𝒱)
+#     return L̂_𝒱
+# end
+
+# function geometricLtHat(R, A, B)
+#     J = size(A,1)
+#     K = size(A,2)
+#     jⁿ = findNormalEdges(A,B)
+#     jᵖ = findPeripheralEdges(B)
+#     jⁱ = ones(J).-jⁿ.-jᵖ
+#     kᵖ = findPeripheralVertices(A,B)
+#     kⁱ = ones(K).-kᵖ
+
+#     Tⱼ = findCellLinkLengths(R, A, B)
+#     Eₖ = findCellLinkTriangleAreas(R, A, B)
+#     Fⱼ = findEdgeQuadrilateralAreas(R, A, B)
+#     E⁻¹ = spdiagm(1.0./Eₖ)
+    
+#     Aⁿⁱ = copy(A)
+#     Aⁿⁱ[jⁿ.==0, :].=0
+#     Aⁿⁱ[:, kⁱ.==0].=0
+#     dropzeros!(Aⁿⁱ)
+#     Aⁿⁱᵀ = Transpose(Aⁿⁱ)
+#     Aⁱⁱ = copy(A)
+#     Aⁱⁱ[jⁱ.==0, :].=0
+#     Aⁱⁱ[:, kⁱ.==0].=0
+#     dropzeros!(Aⁱⁱ)
+#     Aⁱⁱᵀ = Transpose(Aⁱⁱ)
+
+#     Tₗⁿ = spdiagm(jⁿ.*(Tⱼ.^2)./Fⱼ)
+#     Tₗⁱ = spdiagm(jⁱ.*(Tⱼ.^2)./Fⱼ)
+
+#     L̂_𝒯 = E⁻¹*(Aⁿⁱᵀ*Tₗⁿ*Aⁿⁱ + Aⁱⁱᵀ*Tₗⁱ*Aⁱⁱ)
+#     dropzeros!(L̂_𝒯)
+#     return L̂_𝒯
 # end
