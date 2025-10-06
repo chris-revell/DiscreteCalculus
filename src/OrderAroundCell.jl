@@ -2,8 +2,6 @@
 #  OrderAroundCell.jl
 #  DiscreteCalculus
 #
-#  Created by Christopher Revell on 15/08/2023.
-#
 #
 
 module OrderAroundCell

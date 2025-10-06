@@ -2,8 +2,6 @@
 #  InnerOuterProduct.jl
 #  DiscreteCalculus
 #
-#  Created by Christopher Revell on 21/07/2025.
-#
 #
 
 module InnerOuterProduct

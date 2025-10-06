@@ -2,8 +2,6 @@
 #  HNetwork.jl
 #  DiscreteCalculus
 #
-#  Created by Christopher Revell on 01/05/2025.
-#
 #
 
 module HNetwork

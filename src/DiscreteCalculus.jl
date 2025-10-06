@@ -2,8 +2,6 @@
 #  DiscreteCalculus.jl
 #  DiscreteCalculus
 #
-#  Created by Christopher Revell on 15/08/2023.
-#
 #
 
 module DiscreteCalculus
@@ -45,13 +43,13 @@ export findAᵀ!
 export findĀᵀ!
 export findBᵀ!
 export findB̄ᵀ!
+export findÂ!
+export findB̂!
 export findCellEdgeCount!
 export findPeripheralVertices!
 export findPeripheralEdges!
 export findPeripheralCells!
 export findNormalEdges!
-
-export senseCheck
 
 export senseCheck
 

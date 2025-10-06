@@ -2,8 +2,6 @@
 #  GeometryFunctions.jl
 #  DiscreteCalculus
 #
-#  Created by Christopher Revell on 16/08/2023.
-#
 # A set of functions to derive objects that depend on both system topology and vertex positions
 # K => Number of vertices in network
 # J => Number of edges in network
@@ -19,15 +17,15 @@
 # 𝐓ⱼ    ∑ᵢBᵢⱼ(𝐑ᵢ-𝐜ᵖⱼ), cᵖⱼ = ∑ᵢBᵢⱼ𝐜ⱼ    findCellLinks
 # 𝐂ⱼ                findCellLinkMidpoints
 # Cⱼ                findCellLinkLengths
-# 𝐄ₖ findCellLinkTriangles
-# Eₖ findCellLinkTriangleAreas
+# 𝐄ₖ                findCellLinkTriangles
+# Eₖ                findCellLinkTriangleAreas
 # 𝐅ⱼ                findEdgeQuadrilaterals
 # Fⱼ/2              findEdgeQuadrilateralAreas
 # 𝐪ᵢₖ               findSpokes
 #                   findEdgeMidpointCellPolygons
-# 𝐬ᵢₖ findEdgeMidpointLinks
-# Dₖ findEdgeMidpointLinkVertexAreas
-#  findEdgeLinkIntersections
+# 𝐬ᵢₖ               findEdgeMidpointLinks
+# Dₖ                findEdgeMidpointLinkVertexAreas
+#                   findEdgeLinkIntersections
 
 module GeometryFunctions
 

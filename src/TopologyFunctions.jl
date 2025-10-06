@@ -2,8 +2,6 @@
 #  TopologyFunctions.jl
 #  DiscreteCalculus
 #
-#  Created by Christopher Revell on 15/08/2023.
-#
 #
 # A set of functions to derive objects that depend only on system topology
 
@@ -111,6 +109,41 @@ function findNormalEdges!(A, B, jⁿ)
     jⁿ[jⁿinds] .= 1
     return nothing
 end
+function findÂ!(A, B, Â)
+    # J = size(A, 1)
+    # K = size(A, 2)
+    # jⁿ = findNormalEdges(A,B)
+    # jᵖ = findPeripheralEdges(B)
+    # jⁱ = 1 .-jⁿ.-jᵖ
+    # kᵖ = findPeripheralVertices(A,B)
+    # kⁱ = 1 .-kᵖ
+    # Aⁿⁱ = A[jⁿ.==1, kⁱ.==1]
+    # Aⁿⁱᵀ = Transpose(Aⁿⁱ)
+    # Aⁱⁱ = A[jⁱ.==1, kⁱ.==1]
+    # Â = spzeros(Int64, sum(jⁿ)+sum(jⁱ), sum(kⁱ))
+    # Â[1:sum(jⁿ),:] .= Aⁿⁱ
+    # Â[sum(jⁿ)+1:end,:] .= Aⁱⁱ
+    # return Â
+    jᵖ = findPeripheralEdges(B)
+    kᵖ = findPeripheralVertices(A,B)
+    Â .= A[jᵖ.==0, kᵖ.==0]
+    return Â
+end
+function findB̂!(A, B, B̂)
+    # J = size(A, 1)
+    # jⁿ = findNormalEdges(A,B)
+    # jᵖ = findPeripheralEdges(B)
+    # jⁱ = 1 .-jⁿ.-jᵖ
+    # Bⁿ = B[:,jⁿ.==1]
+    # Bⁱ = B[:, jⁱ.==1]
+    # B̂ = spzeros(Int64, size(B,1), sum(jⁱ)+sum(jⁿ))
+    # B̂[:,1:sum(jⁿ)] .= Bⁿ
+    # B̂[:,sum(jⁿ)+1:end] .= Bⁱ
+    # return B̂
+    jᵖ = findPeripheralEdges(B)
+    B̂ .= B[:, jᵖ.==0]
+    return B̂
+end
 
 # Function to check for nonzero values in B*A
 function senseCheck(A, B; marker="")
@@ -145,6 +178,8 @@ export findAᵀ!
 export findĀᵀ!
 export findBᵀ!
 export findB̄ᵀ!
+export findÂ!
+export findB̂!
 export findCellEdgeCount!
 export findPeripheralVertices!
 export findPeripheralEdges!
