@@ -2,7 +2,6 @@
 #  DifferentialOperators.jl
 #  DiscreteCalculus
 #
-#  Created by Christopher Revell on 16/08/2023.
 #
 # Differential operators over primary and dual networks
 
