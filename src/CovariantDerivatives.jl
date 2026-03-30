@@ -15,6 +15,7 @@ using FromFile
 
 @from "GeometryFunctions.jl" using GeometryFunctions
 @from "TopologyFunctions.jl" using TopologyFunctions
+@from "InnerOuterProduct.jl" using InnerOuterProduct
 
 function make𝐃c(R, A, B, 𝐯)
     𝐧ᵢⱼ = findCellOutwardNormals(R, A, B)
