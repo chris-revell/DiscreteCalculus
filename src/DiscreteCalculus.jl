@@ -65,8 +65,8 @@ export findCellPolygons
 export findCellLinks
 export findCellLinkMidpoints
 export findCellLinkLengths
-export findCellLinkTriangles
-export findCellLinkTriangleAreas
+export findCellLinkVertexTriangles
+export findCellLinkVertexTriangleAreas
 export findEdgeQuadrilaterals
 export findEdgeQuadrilateralAreas
 export findEdgeMidpointCellPolygons

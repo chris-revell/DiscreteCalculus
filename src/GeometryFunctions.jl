@@ -17,8 +17,8 @@
 # 𝐓ⱼ    ∑ᵢBᵢⱼ(𝐑ᵢ-𝐜ᵖⱼ), cᵖⱼ = ∑ᵢBᵢⱼ𝐜ⱼ    findCellLinks
 # 𝐂ⱼ                findCellLinkMidpoints
 # Cⱼ                findCellLinkLengths
-# 𝐄ₖ                findCellLinkTriangles
-# Eₖ                findCellLinkTriangleAreas
+# 𝐄ₖ                findCellLinkVertexTriangles
+# Eₖ                findCellLinkVertexTriangleAreas
 # 𝐅ⱼ                findEdgeQuadrilaterals
 # Fⱼ/2              findEdgeQuadrilateralAreas
 # 𝐪ᵢₖ               findSpokes
@@ -115,7 +115,7 @@ end
 # where each components is a vector of Point objects forming the triangle formed around the corresonding vertex 
 # by the lines connecting adjacent cell centroids. In the case of peripheral vertices, the function instead forms 
 # a polygon around the vertex from adjacent cell centroids and peripheral edge midpoints.
-function findCellLinkTriangles(R, A, B)
+function findCellLinkVertexTriangles(R, A, B)
     boundaryVertices = findPeripheralVertices(A, B)
     peripheralEdges = findPeripheralEdges(B)
     C = findC(A, B)
@@ -170,8 +170,8 @@ function findEdgeLinkIntersections(R, A, B)
 end
 
 # Eₖ
-function findCellLinkTriangleAreas(R, A, B)
-    Eₖ = findCellLinkTriangles(R, A, B)
+function findCellLinkVertexTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangles(R, A, B)
     return abs.(area.(Eₖ))
 end
 
@@ -281,8 +281,8 @@ export findCellAreas
 export findCellLinks
 export findCellLinkMidpoints
 export findCellLinkLengths
-export findCellLinkTriangles
-export findCellLinkTriangleAreas
+export findCellLinkVertexTriangles
+export findCellLinkVertexTriangleAreas
 export findEdgeQuadrilaterals
 export findEdgeQuadrilateralAreas
 export findSpokes

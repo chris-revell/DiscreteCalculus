@@ -101,7 +101,7 @@ end
 function geometricLv(R, A, B)
     Aᵀ = Transpose(A)
     tⱼ = findEdgeLengths(R, A)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     E⁻¹ = spdiagm(1.0./Eₖ)
     Tₑ⁻¹ = spdiagm(Fⱼ./(tⱼ .^ 2))
@@ -120,7 +120,7 @@ function geometricLvHatReduced(R, A, B)
     kⁱ = ones(K).-kᵖ
 
     tⱼ = findEdgeLengths(R, A)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
 
     Aⁿⁱ = A[jⁿ.==1, kⁱ.==1]
@@ -141,7 +141,7 @@ end
 function geometricLt(R, A, B)
     Aᵀ = Transpose(A)
     Tⱼ = findCellLinkLengths(R, A, B)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = findEdgeQuadrilateralAreas(R, A, B)
     E⁻¹ = spdiagm(1.0./Eₖ)
     Tₗ = spdiagm((Tⱼ.^2)./Fⱼ)
@@ -160,7 +160,7 @@ function geometricLtHatReduced(R, A, B)
     kⁱ = ones(K).-kᵖ
 
     Tⱼ = findCellLinkLengths(R, A, B)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = findEdgeQuadrilateralAreas(R, A, B)
     
     Aⁿⁱ = A[jⁿ.==1, kⁱ.==1]
@@ -216,7 +216,7 @@ end
 # Vector Laplacian \mathsf{L}_{\mathcal{E}}
 function edgeLaplacianPrimal(R, A, B)
     aᵢ = findCellAreas(R, A, B)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     tⱼ = findEdgeLengths(R, A)
     Aᵀ = transpose(A)
@@ -236,7 +236,7 @@ end
 # Vector Laplacian \mathsf{L}_{\mathcal{E}}
 function edgeLaplacianPrimalHat(R, A, B)
     aᵢ = findCellAreas(R, A, B)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     tⱼ = findEdgeLengths(R, A)
     H⁻¹ = spdiagm(1.0./aᵢ)
@@ -260,7 +260,7 @@ end
 # Vector Laplacian \mathsf{L}_{\mathcal{L}}
 function edgeLaplacianDual(R, A, B)
     aᵢ = findCellAreas(R, A, B)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     Tⱼ = findCellLinkLengths(R, A, B)
     Aᵀ = transpose(A)
@@ -277,7 +277,7 @@ end
 # Vector Laplacian \mathsf{L}_{\mathcal{L}}
 function edgeLaplacianDualHat(R, A, B)
     aᵢ = findCellAreas(R, A, B)
-    Eₖ = findCellLinkTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangleAreas(R, A, B)
     Fⱼ = 2.0.*findEdgeQuadrilateralAreas(R, A, B)
     Tⱼ = findCellLinkLengths(R, A, B)
     H⁻¹ = spdiagm(1.0./aᵢ)
