@@ -20,7 +20,7 @@ using FromFile
 @from "HNetwork.jl" using HNetwork
 @from "DifferentialOperators.jl" using DifferentialOperators
 @from "InnerOuterProduct.jl" using InnerOuterProduct
-@from "CovarianDerivatives.jl" using CovarianDerivatives
+@from "CovariantDerivatives.jl" using CovariantDerivatives
 
 export findĀ
 export findB̄
