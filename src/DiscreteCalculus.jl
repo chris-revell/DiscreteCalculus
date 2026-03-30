@@ -73,6 +73,8 @@ export findEdgeMidpointCellPolygons
 export findEdgeLinkIntersections
 export findSpokes
 export findEdgeMidpointLinks
+export findCellOutwardNormals
+export findTriangleOutwardNormals
 
 export orderAroundCell
 export cellNeighbourOrder

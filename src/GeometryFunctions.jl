@@ -62,6 +62,30 @@ findCellCentresOfMass(R, A, B) = findC(A, B)*R./findCellEdgeCount(B)
 # Returns a vector of floats corresponding to the perimeter lengths of each cell in the network
 findCellPerimeterLengths(R, A, B) = abs.(B)*norm.(A*R)
 
+# 𝐧ᵢⱼ = -Bᵢⱼϵᵢ𝐭ⱼ
+# Returns a sparse matrix of normal vectors to the surface of each cell at each of that cell's edges, with empty components where B[i,j] = 0
+function findCellOutwardNormals(R, A, B)
+    ϵᵢ = SMatrix{2, 2, Float64}([
+                0.0 1.0
+                -1.0 0.0
+            ])
+    𝐭ⱼ = findEdgeTangents(R, A)
+    𝐧ᵢⱼ = [-B[i,j]*ϵᵢ*𝐭ⱼ[j] for i=1:size(B,1), j=1:size(B,2)]
+    return sparse(𝐧ᵢⱼ)
+end
+
+# 𝐍ⱼₖ = -Aⱼₖϵₖ𝐓ⱼ
+# Returns a sparse matrix of normal vectors to the surface of each triangle formed by cell lines around a vertex
+function findTriangleOutwardNormals(R, A, B)
+    ϵₖ = SMatrix{2, 2, Float64}([
+                0.0 -1.0
+                1.0 0.0
+            ])
+    𝐓ⱼ = findCellLinks(R, A, B)
+    𝐍ⱼₖ = [-A[j,k]*ϵₖ*𝐓ⱼ[j] for j=1:size(A,1), k=1:size(A,2)]
+    return sparse(𝐍ⱼₖ)
+end
+
 # Returns a vector of polygons for each cell, where each polygon is a vector of Point{2,Float64} objects from GeometryBasics.jl. This construction is primarily useful for plotting or for area calculations.
 function findCellPolygons(R, A, B)
     cellPolygons = Vector{Point{2,Float64}}[]
@@ -290,5 +314,7 @@ export findEdgeMidpointCellPolygons
 export findEdgeMidpointLinks
 export findEdgeMidpointLinkVertexAreas
 export findEdgeLinkIntersections
+export findCellOutwardNormals
+export findTriangleOutwardNormals
 
 end 
