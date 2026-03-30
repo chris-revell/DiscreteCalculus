@@ -20,6 +20,7 @@ using FromFile
 @from "HNetwork.jl" using HNetwork
 @from "DifferentialOperators.jl" using DifferentialOperators
 @from "InnerOuterProduct.jl" using InnerOuterProduct
+@from "CovarianDerivatives.jl" using CovarianDerivatives
 
 export findĀ
 export findB̄
@@ -131,6 +132,9 @@ export cocurlᵛ
 export cocurlᵛspokes
 export curlᵛ
 export curlᵛspokes
+
+export make𝐃c
+export make𝐃v
 
 export grad_A
 export div_A
