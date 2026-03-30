@@ -133,8 +133,8 @@ export cocurlᵛspokes
 export curlᵛ
 export curlᵛspokes
 
-export make𝐃c
-export make𝐃v
+export 𝐃c
+export 𝐃v
 
 export grad_A
 export div_A
