@@ -1,11 +1,11 @@
 #
-#  CovarianDerivatives.jl
+#  CovariantDerivatives.jl
 #  DiscreteCalculus
 #
 #
 # Differential operators over primary and dual networks
 
-module CovarianDerivatives
+module CovariantDerivatives
 
 using DrWatson
 using LinearAlgebra
