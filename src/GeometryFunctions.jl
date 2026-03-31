@@ -328,5 +328,6 @@ export findEdgeMidpointLinkVertexAreas
 export findEdgeLinkIntersections
 export findCellOutwardNormals
 export findCellLinkTriangleOutwardNormals
+export findEdgeMidpointLinkTriangleOutwardNormals
 
 end 
