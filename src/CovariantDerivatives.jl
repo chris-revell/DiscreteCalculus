@@ -25,11 +25,19 @@ function 𝐃c(R, A, B, 𝐯)
 end
 
 function 𝐃v(R, A, B, 𝐕ⱼ)
-    𝐍ⱼₖ = findTriangleOutwardNormals(R, A, B)
+    𝐍ⱼₖ = findCellLinkTriangleOutwardNormals(R, A, B)
     E = findCellLinkVertexTriangleAreas(R, A, B)
     tmp = [outerProd(𝐍ⱼₖ[j,k], 𝐕ⱼ[j])/E[k] for j=1:size(A,1), k=1:size(A,2)]
     return dropdims(sum(tmp, dims=1), dims=1)
 end
+
+function 𝐆v(R, A, B, 𝐯ᵢ)
+    𝐧ᵢₖ = findEdgeMidpointLinkTriangleOutwardNormals(R, A, B)
+    E = findEdgeMidpointLinkVertexAreas(R, A, B)
+    tmp = [-outerProd(𝐧ᵢₖ[i,k], 𝐯ᵢ[i])/E[k] for i=1:size(B,1), k=1:size(A,2)]
+    return dropdims(sum(tmp, dims=1), dims=1)
+end
+
 
 export 𝐃c
 export 𝐃v

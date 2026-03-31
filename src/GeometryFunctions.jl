@@ -76,7 +76,7 @@ end
 
 # 𝐍ⱼₖ = -Aⱼₖϵₖ𝐓ⱼ
 # Returns a sparse matrix of normal vectors to the surface of each triangle formed by cell lines around a vertex
-function findTriangleOutwardNormals(R, A, B)
+function findCellLinkTriangleOutwardNormals(R, A, B)
     ϵₖ = SMatrix{2, 2, Float64}([
                 0.0 -1.0
                 1.0 0.0
@@ -84,6 +84,18 @@ function findTriangleOutwardNormals(R, A, B)
     𝐓ⱼ = findCellLinks(R, A, B)
     𝐍ⱼₖ = [-A[j,k]*ϵₖ*𝐓ⱼ[j] for j=1:size(A,1), k=1:size(A,2)]
     return sparse(𝐍ⱼₖ)
+end
+
+# 𝐧ᵢₖ = -ϵᵢ𝐬ᵢₖ
+# Returns a sparse matrix of normal vectors to the surface of each triangle formed by edge midpoint links 𝐬ᵢₖ around a vertex
+function findEdgeMidpointLinkTriangleOutwardNormals(R, A, B)
+    ϵᵢ = SMatrix{2, 2, Float64}([
+                0.0 1.0
+                -1.0 0.0
+            ])
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    𝐧ᵢₖ = [-ϵᵢ*𝐬ᵢₖ[i,k] for i=1:size(B,1), k=1:size(A,2)]
+    return sparse(𝐧ᵢₖ)
 end
 
 # Returns a vector of polygons for each cell, where each polygon is a vector of Point{2,Float64} objects from GeometryBasics.jl. This construction is primarily useful for plotting or for area calculations.
@@ -315,6 +327,6 @@ export findEdgeMidpointLinks
 export findEdgeMidpointLinkVertexAreas
 export findEdgeLinkIntersections
 export findCellOutwardNormals
-export findTriangleOutwardNormals
+export findCellLinkTriangleOutwardNormals
 
 end 

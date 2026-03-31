@@ -75,7 +75,8 @@ export findEdgeLinkIntersections
 export findSpokes
 export findEdgeMidpointLinks
 export findCellOutwardNormals
-export findTriangleOutwardNormals
+export findCellLinkTriangleOutwardNormals
+export findEdgeMidpointLinkTriangleOutwardNormals
 
 export orderAroundCell
 export cellNeighbourOrder
@@ -135,6 +136,7 @@ export curlᵛspokes
 
 export 𝐃c
 export 𝐃v
+export 𝐆v
 
 export grad_A
 export div_A
