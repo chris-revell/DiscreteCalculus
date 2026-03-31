@@ -136,7 +136,7 @@ export curlᵛspokes
 
 export 𝐃c
 export 𝐃v
-export 𝐆v
+export 𝐆c
 
 export grad_A
 export div_A
