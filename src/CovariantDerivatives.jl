@@ -31,7 +31,7 @@ function 𝐃v(R, A, B, 𝐕ⱼ)
     return dropdims(sum(tmp, dims=1), dims=1)
 end
 
-function 𝐆v(R, A, B, 𝐯ᵢ)
+function 𝐆c(R, A, B, 𝐯ᵢ)
     𝐧ᵢₖ = findEdgeMidpointLinkTriangleOutwardNormals(R, A, B)
     E = findEdgeMidpointLinkVertexAreas(R, A, B)
     tmp = [-outerProd(𝐧ᵢₖ[i,k], 𝐯ᵢ[i])/E[k] for i=1:size(B,1), k=1:size(A,2)]
@@ -41,5 +41,6 @@ end
 
 export 𝐃c
 export 𝐃v
+export 𝐆c
 
 end
