@@ -315,10 +315,6 @@ function cotan𝐋(R, A, B)
     I = size(B,1)
     J = size(B,2)
     K = size(A,2)
-    # ϵᵢ = SMatrix{2, 2, Float64}([
-    #             0.0 1.0
-    #             -1.0 0.0
-    #         ])
     aᵢ = findCellAreas(R, A, B)
     𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
     Dₖ = findEdgeMidpointLinkVertexAreas(R, A, B)

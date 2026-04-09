@@ -66,10 +66,6 @@ findCellPerimeterLengths(R, A, B) = abs.(B)*norm.(A*R)
 # 𝐧ᵢⱼ = -Bᵢⱼϵᵢ𝐭ⱼ
 # Returns a sparse matrix of normal vectors to the surface of each cell at each of that cell's edges, with empty components where B[i,j] = 0
 function findCellOutwardNormals(R, A, B)
-    # ϵᵢ = SMatrix{2, 2, Float64}([
-    #             0.0 1.0
-    #             -1.0 0.0
-    #         ])
     𝐭ⱼ = findEdgeTangents(R, A)
     𝐧ᵢⱼ = [-B[i,j]*ϵᵢ*𝐭ⱼ[j] for i=1:size(B,1), j=1:size(B,2)]
     return sparse(𝐧ᵢⱼ)
@@ -78,10 +74,6 @@ end
 # 𝐍ⱼₖ = -Aⱼₖϵₖ𝐓ⱼ
 # Returns a sparse matrix of normal vectors to the surface of each triangle formed by cell lines around a vertex
 function findCellLinkTriangleOutwardNormals(R, A, B)
-    # ϵₖ = SMatrix{2, 2, Float64}([
-    #             0.0 -1.0
-    #             1.0 0.0
-    #         ])
     𝐓ⱼ = findCellLinks(R, A, B)
     𝐍ⱼₖ = [-A[j,k]*ϵₖ*𝐓ⱼ[j] for j=1:size(A,1), k=1:size(A,2)]
     return sparse(𝐍ⱼₖ)
@@ -90,10 +82,6 @@ end
 # 𝐧ᵢₖ = -ϵᵢ𝐬ᵢₖ
 # Returns a sparse matrix of normal vectors to the surface of each triangle formed by edge midpoint links 𝐬ᵢₖ around a vertex
 function findEdgeMidpointLinkTriangleOutwardNormals(R, A, B)
-    # ϵᵢ = SMatrix{2, 2, Float64}([
-    #             0.0 1.0
-    #             -1.0 0.0
-    #         ])
     𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
     𝐧ᵢₖ = [-ϵᵢ*𝐬ᵢₖ[i,k] for i=1:size(B,1), k=1:size(A,2)]
     return sparse(𝐧ᵢₖ)
