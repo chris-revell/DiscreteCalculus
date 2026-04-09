@@ -13,6 +13,7 @@ using SparseArrays
 using FromFile
 
 # Local modules
+@from "Constants.jl" using Constants
 @from "GeometryFunctions.jl" using GeometryFunctions
 @from "Laplacians.jl" using Laplacians
 @from "OrderAroundCell.jl" using OrderAroundCell
@@ -147,5 +148,8 @@ export div_L
 
 export innerProd 
 export outerProd
+
+export ϵᵢ
+export ϵₖ
 
 end 
