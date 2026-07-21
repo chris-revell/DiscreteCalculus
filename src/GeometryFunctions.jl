@@ -255,9 +255,27 @@ end
 # 𝐬ᵢₖ = ∑ⱼ(1/2)BᵢⱼtⱼĀⱼₖ
 function findEdgeMidpointLinks(R, A, B)
     𝐭 = findEdgeTangents(R, A)
-    tmp = [0.5*B[i,j]*𝐭[j]*abs(A[j,k]) for i=1:size(B,1), j=1:size(B,2), k=1:size(A,2)]
-    𝐬ᵢⱼ = sparse(dropdims(sum(tmp, dims=2), dims=2))
-    return 𝐬ᵢⱼ
+    𝐬ᵢₖ = spzeros(SVector{2,Float64}, size(B,1), size(A,2))
+    C = findC(A, B)
+    rows = rowvals(C)
+    I, K = size(C)
+    for k = 1:K
+        for ind in nzrange(C, k)
+            i = rows[ind]
+            ik_js = findall(x->x!=0, B[i,:])∩findall(x->x!=0, A[:,k]) # Edges j shared by cell i and vertex k
+            for j in ik_js
+                𝐬ᵢₖ[i,k] += 0.5*B[i,j]*𝐭[j]*abs(A[j,k])
+            end
+        end
+    end
+    # is, ks, vals = findnz(C)
+    # for ind =1:length(is)
+    #     ik_js = findall(x->x!=0, B[is[ind],:])∩findall(x->x!=0, A[:,ks[ind]]) # Edges j shared by cell i and vertex k
+    #     for j in ik_js
+    #         𝐬ᵢₖ[is[ind],ks[ind]] += 0.5*B[is[ind],j]*𝐭[j]*abs(A[j,ks[ind]])
+    #     end
+    # end
+    return 𝐬ᵢₖ
 end
 
 #!!!!!!!!!!!!!!!
