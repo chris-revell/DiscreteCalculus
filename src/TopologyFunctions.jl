@@ -25,7 +25,7 @@ findĀᵀ(A) = abs.(Transpose(A))
 findBᵀ(B) = Transpose(B)
 findB̄ᵀ(B) = abs.(Transpose(B))
 findCellEdgeCount(B) = sum.(eachrow(abs.(B))) # Zᵢ
-findPeripheralVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
+findPeripheralVertices(A,B) = abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2 # kᵖ
 findPeripheralEdges(B) = abs.([sum(x) for x in eachcol(B)]) # qⱼᵇ = Bᵀ𝟙ᵢ
 function findPeripheralCells(B)
     jᵖ = findPeripheralEdges(B)
@@ -60,14 +60,14 @@ end
 # Mutating versions 
 findĀ!(A, Ā) = Ā.=abs.(A)
 findB̄!(B, B̄) = B̄.=abs.(B)
-findC!(Ā, B̄, C) = C.=dropzeros(B̄*Ā.÷2)
+findC!(A, B, C) = C.=dropzeros(abs.(B) * abs.(A) .÷ 2)
 findAᵀ!(A, Aᵀ) = Aᵀ.=Transpose(A)
 findĀᵀ!(A, Āᵀ) = Āᵀ.=abs.(Transpose(A))
 findBᵀ!(B, Bᵀ) = Bᵀ.=Transpose(B)
 findB̄ᵀ!(B, B̄ᵀ) = B̄ᵀ.=abs.(Transpose(B))
 findCellEdgeCount!(B, Zᵢ) = Zᵢ.=sum.(eachrow(abs.(B))) # Zᵢ
-findPeripheralVertices!(A, B, bₖ) = bₖ.=abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
-findPeripheralEdges!(B, bⱼ) = bⱼ.=abs.([sum(x) for x in eachcol(B)])
+findPeripheralVertices!(A, B, kᵖ) = kᵖ.=abs.(Transpose(A)) * abs.(sum.(eachcol(B))) .÷ 2
+findPeripheralEdges!(B, jᵖ) = jᵖ.=abs.([sum(x) for x in eachcol(B)])
 function findPeripheralCells!(B, iᵖ)
     jᵖ = findPeripheralEdges(B)
     peripheralCellIndices = findnz(B[:, jᵖ.==1])[1]

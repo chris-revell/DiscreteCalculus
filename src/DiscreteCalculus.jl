@@ -55,29 +55,32 @@ export findNormalEdges!
 
 export senseCheck
 
-export findCellCentresOfMass
 export findEdgeTangents
+export findEdgeTangents!
 export findEdgeLengths
-export findEdgeLengths
+export findEdgeLengths!
 export findEdgeMidpoints
-export findCellPerimeterLengths
-export findCellAreas
-export findEdgeMidpointLinkVertexAreas
-export findCellPolygons
+export findEdgeMidpoints!
+export findCellOutwardNormals
 export findCellLinks
 export findCellLinkMidpoints
 export findCellLinkLengths
+export findCellLinkTriangleOutwardNormals
+export findCellCentresOfMass
+export findCellCentresOfMass!
+export findCellPerimeterLengths
+export findCellPolygons
+export findCellAreas
 export findCellLinkVertexTriangles
 export findCellLinkVertexTriangleAreas
+export findEdgeLinkIntersections
 export findEdgeQuadrilaterals
 export findEdgeQuadrilateralAreas
-export findEdgeMidpointCellPolygons
-export findEdgeLinkIntersections
 export findSpokes
 export findEdgeMidpointLinks
-export findCellOutwardNormals
-export findCellLinkTriangleOutwardNormals
+export findEdgeMidpointCellPolygons
 export findEdgeMidpointLinkTriangleOutwardNormals
+export findEdgeMidpointLinkVertexAreas
 
 export orderAroundCell
 export cellNeighbourOrder
@@ -86,16 +89,16 @@ export hNetwork
 
 export geometricLf
 export geometricLfHat
-export geometricLfHatReduced
+export geometricLfHat
 export geometricLc
 export geometricLcHat
-export geometricLcHatReduced
+export geometricLcHat
 export geometricLv
 export geometricLvHat
-export geometricLvHatReduced
+export geometricLvHat
 export geometricLt
 export geometricLtHat
-export geometricLtHatReduced
+export geometricLtHat
 export topologicalLf
 export topologicalLc
 export topologicalLv

@@ -44,68 +44,33 @@ using CircularArrays
 @from "Constants.jl" using Constants
 
 # 𝐭ⱼ = Aⱼₖ𝐫ₖ
-# Returns a vector of SVectors corresponding to the tangent vectors of each edge in the network, with length equal to the length of the edge
+# Returns a vector of SVectors corresponding to the tangent vectors of each 
+# edge in the network, with length equal to the length of the edge
 findEdgeTangents(R, A) = A*R
+findEdgeTangents!(R, A, 𝐭ⱼ) = 𝐭ⱼ .= A*R
 
 # tⱼ = |𝐭ⱼ| 
 # Returns a vector of floats corresponding to the lengths of each edge in the network
 findEdgeLengths(R, A) = norm.(A*R)
+findEdgeLengths!(R, A, tⱼ) = tⱼ .= norm.(A*R)
 
-# 𝐜ⱼ = Āⱼₖ𝐫ₖ/2
+# 𝐜ⱼ = Āⱼₖ𝐑ₖ/2
 # Returns a vector of SVectors corresponding to the midpoint locations of each edge in the network
 findEdgeMidpoints(R, A) = 0.5.*abs.(A)*R
-
-# 𝐑ᵢ = Cᵢₖ𝐫ₖ/Zᵢ
-# Returns a vector of SVectors corresponding to the centre of mass locations of each cell in the network, assuming that cells have mass only in their vertices, and each vertex has the same mass. 
-findCellCentresOfMass(R, A, B) = findC(A, B)*R./findCellEdgeCount(B)
-
-# lᵢ = B̄ᵢⱼtⱼ 
-# Returns a vector of floats corresponding to the perimeter lengths of each cell in the network
-findCellPerimeterLengths(R, A, B) = abs.(B)*norm.(A*R)
+findEdgeMidpoints!(R, A, 𝐜ⱼ) = 𝐜ⱼ .= 0.5.*abs.(A)*R
 
 # 𝐧ᵢⱼ = -Bᵢⱼϵᵢ𝐭ⱼ
-# Returns a sparse matrix of normal vectors to the surface of each cell at each of that cell's edges, with empty components where B[i,j] = 0
+# Returns a sparse matrix of normal vectors to the surface of each cell at each of that 
+# cell's edges, with empty components where B[i,j] = 0
 function findCellOutwardNormals(R, A, B)
     𝐭ⱼ = findEdgeTangents(R, A)
     𝐧ᵢⱼ = [-B[i,j]*ϵᵢ*𝐭ⱼ[j] for i=1:size(B,1), j=1:size(B,2)]
     return sparse(𝐧ᵢⱼ)
 end
 
-# 𝐍ⱼₖ = -Aⱼₖϵₖ𝐓ⱼ
-# Returns a sparse matrix of normal vectors to the surface of each triangle formed by cell lines around a vertex
-function findCellLinkTriangleOutwardNormals(R, A, B)
-    𝐓ⱼ = findCellLinks(R, A, B)
-    𝐍ⱼₖ = [-A[j,k]*ϵₖ*𝐓ⱼ[j] for j=1:size(A,1), k=1:size(A,2)]
-    return sparse(𝐍ⱼₖ)
-end
-
-# 𝐧ᵢₖ = -ϵᵢ𝐬ᵢₖ
-# Returns a sparse matrix of normal vectors to the surface of each triangle formed by edge midpoint links 𝐬ᵢₖ around a vertex
-function findEdgeMidpointLinkTriangleOutwardNormals(R, A, B)
-    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
-    𝐧ᵢₖ = [-ϵᵢ*𝐬ᵢₖ[i,k] for i=1:size(B,1), k=1:size(A,2)]
-    return sparse(𝐧ᵢₖ)
-end
-
-# Returns a vector of polygons for each cell, where each polygon is a vector of Point{2,Float64} objects from GeometryBasics.jl. This construction is primarily useful for plotting or for area calculations.
-function findCellPolygons(R, A, B)
-    cellPolygons = Vector{Point{2,Float64}}[]
-    for i = 1:size(B, 1)
-        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
-        push!(cellPolygons, Point{2, Float64}.(R[orderedVertices]))
-    end
-    return cellPolygons
-end
-
-# aᵢ
-# Returns a vector of floats corresponding to the areas of each cell in the network, using the GeometryBasics area() function for simplicity
-function findCellAreas(R, A, B)
-    cellPolygons = findCellPolygons(R, A, B)
-    return abs.(area.(cellPolygons))
-end
-
 # 𝐓ⱼ = ∑ᵢBᵢⱼ(𝐑ᵢ-𝐜ᵖⱼ), cᵖⱼ = ∑ᵢBᵢⱼ𝐜ⱼ
-# Returns a vector of SVectors, indexed by edge j, corresponding to the vector separating adjacent cell centres, or cell centres and edge midpoints at the periphery
+# Returns a vector of SVectors, indexed by edge j, corresponding to the vector separating adjacent 
+# cell centres, or cell centres and edge midpoints at the periphery
 function findCellLinks(R, A, B)
     B̄ = abs.(B)
     𝐑ᵢ = findCellCentresOfMass(R, A, B)
@@ -128,18 +93,57 @@ function findCellLinkMidpoints(R, A, B)
     return 𝐂ⱼ
 end
 
-# Tⱼ
+# Tⱼ = |𝐓ⱼ|
 # Returns a vector of floats, indexed by edge j, corresponding to the lengths of cell links 𝐓ⱼ
 function findCellLinkLengths(R, A, B)
     T = findCellLinks(R, A, B)
     return norm.(T)
 end
 
-# Conventional variable name 𝐄ₖ
-# Function that returns a vector with length equal to the number of vertices, 
-# where each components is a vector of Point objects forming the triangle formed around the corresonding vertex 
-# by the lines connecting adjacent cell centroids. In the case of peripheral vertices, the function instead forms 
-# a polygon around the vertex from adjacent cell centroids and peripheral edge midpoints.
+# 𝐍ⱼₖ = -Aⱼₖϵₖ𝐓ⱼ
+# Returns a sparse matrix of normal vectors to the surface of each triangle formed by cell-cell links around a vertex,
+# indexed by edge j and vertex k
+function findCellLinkTriangleOutwardNormals(R, A, B)
+    𝐓ⱼ = findCellLinks(R, A, B)
+    𝐍ⱼₖ = [-A[j,k]*ϵₖ*𝐓ⱼ[j] for j=1:size(A,1), k=1:size(A,2)]
+    return sparse(𝐍ⱼₖ)
+end
+
+# 𝐫ᵢ = Cᵢₖ𝐑ₖ/Zᵢ
+# Returns a vector of SVectors corresponding to the centre of mass locations of each cell in 
+# the network, assuming that cells have mass only in their vertices, and each vertex has the same mass. 
+findCellCentresOfMass(R, A, B) = findC(A, B)*R./findCellEdgeCount(B)
+findCellCentresOfMass!(R, A, B, 𝐫ᵢ) = 𝐫ᵢ .= findC(A, B)*R./findCellEdgeCount(B)
+
+# lᵢ = B̄ᵢⱼtⱼ 
+# Returns a vector of floats corresponding to the perimeter lengths of each cell in the network.
+findCellPerimeterLengths(R, A, B) = abs.(B)*findEdgeLengths(R, A)
+
+# Returns a vector of polygons for each cell, where each polygon is a vector of 
+# Point{2,Float64} objects from GeometryBasics.jl. This construction is primarily 
+# useful for plotting or for area calculations.
+function findCellPolygons(R, A, B)
+    cellPolygons = Vector{Point{2,Float64}}[]
+    for i = 1:size(B, 1)
+        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
+        push!(cellPolygons, Point{2, Float64}.(R[orderedVertices]))
+    end
+    return cellPolygons
+end
+
+# aᵢ
+# Returns a vector of floats corresponding to the areas of each cell in the network, 
+# using the GeometryBasics area() function for simplicity
+function findCellAreas(R, A, B)
+    cellPolygons = findCellPolygons(R, A, B)
+    return abs.(area.(cellPolygons))
+end
+
+# 𝐄ₖ
+# Function that returns a vector with length equal to the number of vertices, K, containing polygons 
+# defined by the cell links connecting adjacent cells to each vertex. 
+# In the case of peripheral vertices, the function instead forms a polygon around 
+# the vertex comprising adjacent cell centroids and peripheral edge midpoints.
 function findCellLinkVertexTriangles(R, A, B)
     boundaryVertices = findPeripheralVertices(A, B)
     peripheralEdges = findPeripheralEdges(B)
@@ -162,6 +166,13 @@ function findCellLinkVertexTriangles(R, A, B)
         end
     end
     return linkTriangles
+end
+
+# Eₖ
+# Function that returns areas of cell link vertex triangles. 
+function findCellLinkVertexTriangleAreas(R, A, B)
+    Eₖ = findCellLinkVertexTriangles(R, A, B)
+    return abs.(area.(Eₖ))
 end
 
 # 𝐛ⱼ 
@@ -194,16 +205,8 @@ function findEdgeLinkIntersections(R, A, B)
     return 𝐛ⱼ
 end
 
-# Eₖ
-function findCellLinkVertexTriangleAreas(R, A, B)
-    Eₖ = findCellLinkVertexTriangles(R, A, B)
-    return abs.(area.(Eₖ))
-end
-
-# Function that returns a vector of floats with length J where each element corresponds to an edge and gives the area of the quadrilateral 
-# formed by the vertices at each end of the edge and the centroids of the cells adjacent to the edge. In the case of a peripheral edge this is instead 
-# a triangle formed with only one cell centroid 
-# This area is equivalent to 0.5*Fⱼ in the conventional naming convention 
+# Function that returns a vector polygons corresponding to the quadrilateral formed by vertices 
+# and cell centres adjacent to each edge. Note that this is a triangle at the monolayer periphery.
 function findEdgeQuadrilaterals(R, A, B)
     J = size(B, 2)
     cellCentresOfMass = findCellCentresOfMass(R, A, B)
@@ -221,12 +224,15 @@ function findEdgeQuadrilaterals(R, A, B)
 end
 
 # 0.5*Fⱼ
+# Returns a vector of scalar areas for the quadrilaterals formed by vertices and cell centres adjacent to each edge.
 function findEdgeQuadrilateralAreas(R, A, B)
     edgeQuadrilaterals = findEdgeQuadrilaterals(R, A, B)
     return abs.(area.(edgeQuadrilaterals))
 end
 
-# 𝐪ᵢₖ = C̄ᵢₖ*(𝐫ₖ - 𝐑ᵢ)
+# 𝐪ᵢₖ = C̄ᵢₖ*(𝐑ₖ - 𝐫ᵢ)
+# Returns a vector of vectors corresponding to the spokes connecting cell centres and the corresonding vertices,
+# indexed by cell and vertex pairs.
 function findSpokes(R, A, B)
     K = size(A, 2)
     I = size(B, 1)
@@ -241,18 +247,9 @@ function findSpokes(R, A, B)
     return 𝐪ᵢₖ
 end
 
-function findEdgeMidpointCellPolygons(R, A, B)
-    I = size(B, 1)
-    edgeMidpoints = findEdgeMidpoints(R, A)
-    edgeMidpointPolygons = Vector{Point{2,Float64}}[]
-    for i = 1:I
-        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
-        push!(edgeMidpointPolygons, Point{2,Float64}.(edgeMidpoints[orderedEdges]))
-    end
-    return edgeMidpointPolygons
-end
-
 # 𝐬ᵢₖ = ∑ⱼ(1/2)BᵢⱼtⱼĀⱼₖ
+# Returns a sparse matrix of vectors connecting midpoints of adjacent edges, 
+# indexed by the corresponding cell i and vertex k. 
 function findEdgeMidpointLinks(R, A, B)
     𝐭 = findEdgeTangents(R, A)
     𝐬ᵢₖ = spzeros(SVector{2,Float64}, size(B,1), size(A,2))
@@ -268,73 +265,86 @@ function findEdgeMidpointLinks(R, A, B)
             end
         end
     end
-    # is, ks, vals = findnz(C)
-    # for ind =1:length(is)
-    #     ik_js = findall(x->x!=0, B[is[ind],:])∩findall(x->x!=0, A[:,ks[ind]]) # Edges j shared by cell i and vertex k
-    #     for j in ik_js
-    #         𝐬ᵢₖ[is[ind],ks[ind]] += 0.5*B[is[ind],j]*𝐭[j]*abs(A[j,ks[ind]])
-    #     end
-    # end
     return 𝐬ᵢₖ
 end
 
-#!!!!!!!!!!!!!!!
+# Returns a vector of polygons corresponding to the ordered edge midpoints around each cell
+function findEdgeMidpointCellPolygons(R, A, B)
+    I = size(B, 1)
+    edgeMidpoints = findEdgeMidpoints(R, A)
+    edgeMidpointPolygons = Vector{Point{2,Float64}}[]
+    for i = 1:I
+        orderedVertices, orderedEdges = orderAroundCell(A, B, i)
+        push!(edgeMidpointPolygons, Point{2,Float64}.(edgeMidpoints[orderedEdges]))
+    end
+    return edgeMidpointPolygons
+end
+
+# 𝐧ᵢₖ = -ϵᵢ𝐬ᵢₖ
+# For each triangle formed by edge midpoint links 𝐬ᵢₖ around a vertex k, returns a sparse matrix of 
+# vectors normal to the triangle, indexed by corresonding cells i and vertices k. 
+function findEdgeMidpointLinkTriangleOutwardNormals(R, A, B)
+    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
+    𝐧ᵢₖ = [-ϵᵢ*𝐬ᵢₖ[i,k] for i=1:size(B,1), k=1:size(A,2)]
+    return sparse(𝐧ᵢₖ)
+end
+
+# Dₖ
 # Function that returns a vector of floats corresponding to the areas surrounding each vertex in the network.
 # For internal vertices this area is bounded by the lines connecting adjacent edge midpoints. For peripheral vertices, 
 # it is a the area of the quadrilateral formed by adjacent edge midpoint links and 2 adjacent peripheral edges.
-# Conventional variable name Dₖ
 function findEdgeMidpointLinkVertexAreas(R, A, B)
     K = size(A,2)
-    edgeTangents = findEdgeTangents(R, A)
-    𝐬ᵢₖ = findEdgeMidpointLinks(R, A, B)
-    Ā = abs.(A)
-    B̄ = abs.(B)
-    C = B̄ * Ā .÷ 2 # (NB Integer division)
-    dropzeros!(C)
-    vertexAreas = zeros(K)
+    𝐜ⱼ = findEdgeMidpoints(R, A)
+    C = findC(A, B)
+    Dₖ = zeros(K)
     for k=1:K
+        k_js = findall(x->x!=0, A[:,k]) # Edges j around vertex k
         k_is = findall(x->x!=0, C[:,k]) # Cells i surrounding vertex k
         if length(k_is) == 1
             # If peripheral vertex with only one adjacent cell 
-            k_js = findall(x->x!=0, A[:,k]) # Edges j around vertex k
-            vertexAreas[k] = 0.5^3*norm([edgeTangents[k_js[1]]...,0.0]×[edgeTangents[k_js[2]]...,0.0]) # Triangle area from cross product of adjacent edge tangents
+            polygon = Point{2,Float64}.([R[k], 𝐜ⱼ[k_js[1]], 𝐜ⱼ[k_js[2]]])
+            Dₖ[k] = area(polygon)
         elseif length(k_is) == 2
             # If peripheral vertex with 2 adjacent cells 
-            edgesSharedBy_i1_And_k = findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, A[:,k])
-            vertexAreas[k] = 0.5^3*norm([edgeTangents[edgesSharedBy_i1_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i1_And_k[2]]...,0.0])
-            edgesSharedBy_i2_And_k = findall(x->x!=0, B[k_is[2],:])∩findall(x->x!=0, A[:,k])
-            vertexAreas[k] += 0.5^3*norm([edgeTangents[edgesSharedBy_i2_And_k[1]]...,0.0]×[edgeTangents[edgesSharedBy_i2_And_k[2]]...,0.0])
+            sharedEdge = (findall(x->x!=0, B[k_is[1],:])∩findall(x->x!=0, B[k_is[2],:]))[1]
+            notSharedEdges = setdiff(k_js, sharedEdge)
+            polygon = Point{2,Float64}.([R[k], 𝐜ⱼ[notSharedEdges[1]], 𝐜ⱼ[sharedEdge], 𝐜ⱼ[notSharedEdges[2]]])
+            Dₖ[k] = area(polygon)
         else
             # If internal vertex with 3 adjacent cells 
-            vertexAreas[k] = 0.5*norm([𝐬ᵢₖ[k_is[1], k]...,0.0]×[𝐬ᵢₖ[k_is[2],k]...,0.0])
+            polygon = Point{2,Float64}.(𝐜ⱼ[k_js])
+            Dₖ[k] = area(polygon)
         end
     end
-    return vertexAreas
+    return abs.(Dₖ)
 end
 
-
-
 export findEdgeTangents
+export findEdgeTangents!
 export findEdgeLengths
+export findEdgeLengths!
 export findEdgeMidpoints
-export findCellCentresOfMass
-export findCellPerimeterLengths
-export findCellPolygons
-export findCellAreas
+export findEdgeMidpoints!
+export findCellOutwardNormals
 export findCellLinks
 export findCellLinkMidpoints
 export findCellLinkLengths
+export findCellLinkTriangleOutwardNormals
+export findCellCentresOfMass
+export findCellCentresOfMass!
+export findCellPerimeterLengths
+export findCellPolygons
+export findCellAreas
 export findCellLinkVertexTriangles
 export findCellLinkVertexTriangleAreas
+export findEdgeLinkIntersections
 export findEdgeQuadrilaterals
 export findEdgeQuadrilateralAreas
 export findSpokes
-export findEdgeMidpointCellPolygons
 export findEdgeMidpointLinks
-export findEdgeMidpointLinkVertexAreas
-export findEdgeLinkIntersections
-export findCellOutwardNormals
-export findCellLinkTriangleOutwardNormals
+export findEdgeMidpointCellPolygons
 export findEdgeMidpointLinkTriangleOutwardNormals
+export findEdgeMidpointLinkVertexAreas
 
 end 
