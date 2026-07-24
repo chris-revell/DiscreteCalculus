@@ -11,7 +11,6 @@ using StaticArrays
 using LinearAlgebra
 using SparseArrays
 using CircularArrays
-using InvertedIndices
 using FromFile
 
 @from "TopologyFunctions.jl" using TopologyFunctions
