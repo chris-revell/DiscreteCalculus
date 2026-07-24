@@ -53,8 +53,6 @@ function hNetwork(R, A, B, F)
     Ā = abs.(A)
     B̄ = abs.(B)
 
-    # Ensure we don't start with a boundary cell
-    # startCell = rand(collect(1:I)[Not(peripheralCells)])
     startCell = 1 
     traversedCells = Int64[]
     traversedEdges = Int64[]
